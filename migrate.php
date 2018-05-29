@@ -17,6 +17,7 @@ $longopts  = array(
     "ssh_port:",
     "ssh_web_root:",
     "web_root:",
+    "base_url:"
      // Required value
 );
 $options = getopt($shortopts,$longopts);
@@ -80,6 +81,7 @@ function get_remote_db_info_m2($env_path){
     'db_user'=> $env_data['db']['connection']['default']['username'],
     'db_pass' => $env_data['db']['connection']['default']['password'],
     'db_host' => $env_data['db']['connection']['default']['host'],
+    'table_prefix' => $env_data['db']['table_prefix']
     );
     return $db_info;
 }
@@ -178,16 +180,43 @@ function drop_database_tables($db_host,$db_name,$db_user,$db_pass) {
 }
 
 function import_database($options,$globals) {
-  $command='pv ' . $globals['prod_dump'] . '| mysql -h ' . $globals['db_host']  . ' -u ' . $options['db_user'] . '-p' . $options['db_pass'] . ' ' . $options['db'];
+  $command='pv ' . $globals['prod_dump'] . '| mysql -h mysql ' . $globals['db_host']  . ' -u ' . $options['db_user'] . ' -p' . $options['db_pass'] . ' ' . $options['db'];
+  print_r($command);
   run_command($command);
 }
 
+function update_base_urls($options,$dbinfo) {
+  print_r("Updating default base URLS only...\n");
+  $conn = new mysqli('mysql', $options['db_user'], $options['db_pass'], $options['db']);
+// Check connection
+  if ($conn->connect_error) {
+      die("Connection failed: " . $conn->connect_error);
+  } 
+
+  $sql = 'update '. $dbinfo['table_prefix'] . 'core_config_data set value="' . $options['base_url'] . '" where path like "web/%secure/base_url" and scope="default"';
+  if ($conn->query($sql) === TRUE) {
+      echo "Record updated successfully";
+  } else {
+      echo "Error updating record: " . $conn->error;
+  }
+
+  $conn->close();
+}
+
+
+function deploy_m2($options) {
+  echo "php " . $options['web_root'] . "bin/magento maintenance:enable";
+  run_command("php " . $options['web_root'] . "bin/magento maintenance:enable");
+  run_command("php " . $options['web_root'] . "bin/magento deploy:mode:set production");
+  run_command("php " . $options['web_root'] . "bin/magento maintenance:disable");
+  run_command("php " . $options['web_root'] . "bin/magento cache:clean");
+}
 
 //MAIN LOOP
 //drop database
 drop_database_tables($globals['mysql_host'],$options['db_name'],$options['db_user'],$options['db_pass']);
 //make sure target web root is clear first
-//run_command("rm -rf " . $options['web_root']);
+run_command("rm -rf " . $options['web_root']);
 //now sync files over
 rsync($options['ssh_user'],$options['ssh_url'],$options['ssh_port'],$options['ssh_web_root'],$options['web_root']);
 //get old db info for remote var_dump
@@ -215,5 +244,7 @@ $output = var_export($env_data, true);
 //files copy , database moved, lets import something
 import_database($options,$globals);
 
+update_base_urls($options,$dbinfo);
+deploy_m2($options);
 
 ?>
