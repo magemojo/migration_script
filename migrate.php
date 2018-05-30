@@ -7,6 +7,7 @@ $globals = array(
 
 //set up PHP ARG Options
 
+
 $shortopts='';
 $longopts  = array(
     "db:",
@@ -17,13 +18,23 @@ $longopts  = array(
     "ssh_port:",
     "ssh_web_root:",
     "web_root:",
-    "base_url:"
+    "base_url:",
+    "magento:" //m1 or m2
      // Required value
 );
 $options = getopt($shortopts,$longopts);
 print_r($options);
-//functionssaaaaa
+//classes
 
+class SimpleXMLExtended extends SimpleXMLElement {
+  public function addCData($cData_text) {
+    $node = dom_import_simplexml($this); 
+    $no   = $node->ownerDocument; 
+    $node->appendChild($no->createCDataSection($cData_text)); 
+  } 
+}
+
+//functionssaaaa
 function return_redis_config() {
 //array for PHP config
     return array (
@@ -86,6 +97,26 @@ function get_remote_db_info_m2($env_path){
     return $db_info;
 }
 
+function get_remote_db_info_m1($local_xml_path) {
+  $new_xml=file_get_contents($local_xml_path);
+  $xml=new SimpleXMLExtended($new_xml);
+  //zero out the field, not elegant but works
+  $db=$xml->global->resources->default_setup->connection->dbname;
+  $db_user=$xml->global->resources->default_setup->connection->username;
+  $db_pass=$xml->global->resources->default_setup->connection->password;
+  $db_host=$xml->global->resources->default_setup->connection->host;
+  $table_prefix=$xml->global->resources->db->table_prefix;
+  
+  $db_info  = array(
+  'db'=> $db,
+  'db_user'=> $db_user,
+  'db_pass' => $db_pass,
+  'db_host' => $db_host,
+  'table_prefix' => $table_prefix
+  );
+  return $db_info;
+}
+
 function set_db_creds_m2($env_data,$options) {
           $env_data['db']['connection']['default']['dbname']=$options['db'];
           $env_data['db']['connection']['default']['username']=$options['db_user'];
@@ -93,6 +124,60 @@ function set_db_creds_m2($env_data,$options) {
           $env_data['db']['connection']['default']['host']='mysql';
           return $env_data;
 }
+
+
+function update_local_xml_m1($options,$local_xml_path) {
+  $new_xml=file_get_contents($local_xml_path);
+  $xml=new SimpleXMLExtended($new_xml);
+  //zero out the field, not elegant but works
+  echo "Configurating local.xml with DB info, redis, and memcache...";
+  //database createCDataSection
+  $db_user=$xml->global->resources->default_setup->connection->dbname='';
+  $db_user=$xml->global->resources->default_setup->connection->username='';
+  $db_pass=$xml->global->resources->default_setup->connection->password='';
+  $db_host=$xml->global->resources->default_setup->connection->host='';
+  $db_user=$xml->global->resources->default_setup->connection->dbname->addCData($options['db']);
+  $db_user=$xml->global->resources->default_setup->connection->username->addCData($options['db_user']);
+  $db_pass=$xml->global->resources->default_setup->connection->password->addCData($options['db_pass']);
+  $db_host=$xml->global->resources->default_setup->connection->host->addCData('mysql');
+  //Redis and Memcache
+  $xml->global->session_save='';
+  $xml->global->session_save->addCData("memcache");
+  $xml->global->session_save_path='';
+  $xml->global->session_save_path->addCData("tcp://memcache:11211?persistent=0&weight=2&timeout=60&retry_interval=10");
+  $xml->global->cache->backend_options->server='';
+  $xml->global->cache->backend_options->server->addCData("redis");
+  $xml->global->cache->backend_options->port='';
+  $xml->global->cache->backend_options->port->addCData("6379");
+  $xml->global->cache->backend_options->persistent='';
+  $xml->global->cache->backend_options->persistent->addCData("");
+  $xml->global->cache->backend_options->database='';
+  $xml->global->cache->backend_options->database->addCData("2");
+  $xml->global->cache->backend_options->password='';
+  $xml->global->cache->backend_options->password->addCData("");
+  $xml->global->cache->backend_options->connect_retries='';
+  $xml->global->cache->backend_options->connect_retries->addCData("1");
+  $xml->global->cache->backend_options->read_timeout='';
+  $xml->global->cache->backend_options->read_timeout->addCData("10");
+  $xml->global->cache->backend_options->automatic_cleaning_factor='';
+  $xml->global->cache->backend_options->automatic_cleaning_factor->addCData('');
+  $xml->global->cache->backend_options->compress_data='';
+  $xml->global->cache->backend_options->compress_data->addCData('1');
+  $xml->global->cache->backend_options->compress_tags='';
+  $xml->global->cache->backend_options->compress_tags->addCData('1');
+  $xml->global->cache->backend_options->compress_threshold='';
+  $xml->global->cache->backend_options->compress_threshold->addCData('20480');
+  $xml->global->cache->backend_options->compress_lib='';
+  $xml->global->cache->backend_options->compress_lib->addCData('gzip');
+  $xml->global->cache->backend_options->use_lua='';
+  $xml->global->cache->backend_options->use_lua->addCData('0');
+  $xml->global->cache->backend='';
+  $xml->global->cache->backend->addCData('Cm_Cache_Backend_Redis');
+  
+  
+  $xml->asXml($local_xml_path);
+}
+
 
 function set_redis_m2($env_data) {
     //if cache and page_cache already set, then set server host to redis
@@ -212,6 +297,14 @@ function deploy_m2($options) {
   run_command("php " . $options['web_root'] . "bin/magento cache:clean");
 }
 
+function reindex_m1($web_root) {
+  run_command("php " . $web_root . "shell/indexer.php --reindexall");
+}
+
+function clear_cache_m1(){
+  run_command("rm -rf " . $web_root . "var/cache");
+  run_command("redis-cli -h redis flushall");
+}
 //MAIN LOOP
 //drop database
 drop_database_tables($globals['mysql_host'],$options['db_name'],$options['db_user'],$options['db_pass']);
@@ -220,31 +313,48 @@ run_command("rm -rf " . $options['web_root']);
 //now sync files over
 rsync($options['ssh_user'],$options['ssh_url'],$options['ssh_port'],$options['ssh_web_root'],$options['web_root']);
 //get old db info for remote var_dump
-$db_info=get_remote_db_info_m2($options['web_root'] . "app/etc/env.php");
-//dump database from remote host
-dump_remote_db($options,$db_info);
-//load env.php
-$env_data = load_env_m2($options['web_root'] . "app/etc/env.php");
-//set redis configuration
-$env_data = set_redis_m2($env_data);
-//set memcache sessions for Stratus
-$env_data = set_memcache_m2($env_data);
-//set db creds
-$env_data=set_db_creds_m2($env_data,$options);
-//write to file
-$output = var_export($env_data, true);
-        try {
-            $fp = fopen($options['web_root'] . "app/etc/env.php", 'w');
-            fwrite($fp, "<?php\n return " . $output . ";\n");
-            fclose($fp);
-        } catch (\Exception $e) {
-            throw new \Exception("Could not write file" . $e);
-            exit(1);
-        }
-//files copy , database moved, lets import something
-import_database($options,$globals);
 
-update_base_urls($options,$dbinfo);
-deploy_m2($options);
+if ($options['magento']=="m2") {
+  $db_info=get_remote_db_info_m2($options['web_root'] . "app/etc/env.php");
+  //dump database from remote host
+  dump_remote_db($options,$db_info);
+  //load env.php
+  $env_data = load_env_m2($options['web_root'] . "app/etc/env.php");
+  //set redis configuration
+  $env_data = set_redis_m2($env_data);
+  //set memcache sessions for Stratus
+  $env_data = set_memcache_m2($env_data);
+  //set db creds
+  $env_data=set_db_creds_m2($env_data,$options);
+  //write to file
+  $output = var_export($env_data, true);
+          try {
+              $fp = fopen($options['web_root'] . "app/etc/env.php", 'w');
+              fwrite($fp, "<?php\n return " . $output . ";\n");
+              fclose($fp);
+          } catch (\Exception $e) {
+              throw new \Exception("Could not write file" . $e);
+              exit(1);
+          }
+  //files copy , database moved, lets import something
+  import_database($options,$globals);
+
+  update_base_urls($options,$dbinfo);
+  deploy_m2($options);
+  }
+  
+  
+  if ($options['magento']=="m1") {
+    $db_info=get_remote_db_info_m1($options['web_root'] . "app/etc/local.xml"); //completed
+    //dump database from remote host
+    dump_remote_db($options,$db_info);
+    update_local_xml_m1($options,$options['web_root'] . "app/etc/local.xml"); 
+    import_database($options,$globals);
+    update_base_urls($options,$dbinfo);
+    reindex_m1($options['web_root']); //needs made
+    clear_cache_m1($options['web_root']); //needs made
+    echo "migration complete, in theory";
+  }
+
 
 ?>
