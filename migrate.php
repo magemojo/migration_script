@@ -252,6 +252,7 @@ function drop_database_tables($db_host,$db_name,$db_user,$db_pass) {
     //identical to the bash script we use
     print_r("Dropping database tables...");
     $mysqli = new mysqli($db_host, $db_user, $db_pass, $db_name);
+    $mysqli->select_db($db_name);
     $mysqli->query('SET foreign_key_checks = 0');
     if ($result = $mysqli->query("SHOW TABLES"))
     {
@@ -307,7 +308,7 @@ function clear_cache_m1(){
 }
 //MAIN LOOP
 //drop database
-drop_database_tables($globals['mysql_host'],$options['db_name'],$options['db_user'],$options['db_pass']);
+drop_database_tables($globals['mysql_host'],$options['db'],$options['db_user'],$options['db_pass']);
 //make sure target web root is clear first
 run_command("rm -rf " . $options['web_root']);
 //now sync files over
