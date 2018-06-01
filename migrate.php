@@ -19,7 +19,7 @@ $longopts  = array(
     "ssh_web_root:",
     "web_root:",
     "base_url:",
-    "magento:" //m1 or m2
+    "magento:"
      // Required value
 );
 $options = getopt($shortopts,$longopts);
@@ -219,10 +219,9 @@ function run_command($command) {
     echo '\n';
 }
 
-function rsync($ssh_user,$ssh_url,$ssh_port,$ssh_web_root,$target) {
+function rsync($options) {
     //construct command for readability
-    
-    $command='rsync -avz -e "ssh -p ' . $ssh_port . '" ' . $ssh_user . '@' . $ssh_url . ":" . $ssh_web_root . " " . $target . " --copy-links";
+    $command='rsync -avz -e "ssh -p ' . $options['ssh_port'] . '" ' . $options['ssh_user'] . '@' . $options['ssh_url'] . ":" . $options['ssh_web_root'] . " " . $options['web_root'] . " --copy-links";
     print_r("Copying with \n" . $command . " use this password: ");
     print_r($ssh_pass);
     while (@ ob_end_flush()); // end all output buffers if any
@@ -311,9 +310,11 @@ function clear_cache_m1(){
 //drop database
 drop_database_tables($globals['mysql_host'],$options['db'],$options['db_user'],$options['db_pass']);
 //make sure target web root is clear first
+echo "Deleting current web root..";
 run_command("rm -rf " . $options['web_root']);
 //now sync files over
-rsync($options['ssh_user'],$options['ssh_url'],$options['ssh_port'],$options['ssh_web_root'],$options['web_root']);
+echo "Starting rsync...";
+rsync($options);
 //get old db info for remote var_dump
 
 if ($options['magento']=="m2") {
