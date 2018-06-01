@@ -222,7 +222,7 @@ function run_command($command) {
 function rsync($ssh_user,$ssh_url,$ssh_port,$ssh_web_root,$target) {
     //construct command for readability
     
-    $command='rsync -avz -e "ssh -p ' . $ssh_port . '" ' . $ssh_user . '@' . $ssh_url . ":" . $ssh_web_root . " " . $target;
+    $command='rsync -avz -e "ssh -p ' . $ssh_port . '" ' . $ssh_user . '@' . $ssh_url . ":" . $ssh_web_root . " " . $target . " --copy-links";
     print_r("Copying with \n" . $command . " use this password: ");
     print_r($ssh_pass);
     while (@ ob_end_flush()); // end all output buffers if any
@@ -296,6 +296,7 @@ function deploy_m2($options) {
   run_command("php " . $options['web_root'] . "bin/magento deploy:mode:set production");
   run_command("php " . $options['web_root'] . "bin/magento maintenance:disable");
   run_command("php " . $options['web_root'] . "bin/magento cache:clean");
+  run_command("php " . $options['web_root'] . "bin/magento setup:config:set --http-cache-hosts=varnish");
 }
 
 function reindex_m1($web_root) {
