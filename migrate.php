@@ -339,6 +339,8 @@ if ($options['magento']=="m2") {
               throw new \Exception("Could not write file" . $e);
               exit(1);
           }
+  //remove definers
+  run_command("sed -i 's/DEFINER=[^*]*\*/\*/g' /srv/prod_dump.sql")
   //files copy , database moved, lets import something
   import_database($options,$globals);
 
@@ -351,7 +353,9 @@ if ($options['magento']=="m2") {
     $db_info=get_remote_db_info_m1($options['web_root'] . "app/etc/local.xml"); //completed
     //dump database from remote host
     dump_remote_db($options,$db_info);
-    update_local_xml_m1($options,$options['web_root'] . "app/etc/local.xml"); 
+    update_local_xml_m1($options,$options['web_root'] . "app/etc/local.xml");
+    //remove definers
+    run_command("sed -i 's/DEFINER=[^*]*\*/\*/g' /srv/prod_dump.sql")
     import_database($options,$globals);
     update_base_urls($options,$dbinfo);
     reindex_m1($options['web_root']); //needs made
