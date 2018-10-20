@@ -221,7 +221,7 @@ function run_command($command) {
 
 function rsync($options) {
     //construct command for readability
-    $command='rsync -avz -e "ssh -p ' . $options['ssh_port'] . '" ' . $options['ssh_user'] . '@' . $options['ssh_url'] . ":" . $options['ssh_web_root'] . " " . $options['web_root'] . " --copy-links";
+    $command='rsync -avz -e "ssh -p ' . $options['ssh_port'] . '" ' . $options['ssh_user'] . '@' . $options['ssh_url'] . ":" . $options['ssh_web_root'] . " " . $options['web_root'] . " --copy-links --exclude=var/log/* --exclude=var/cache* --exclude=var/session* --exclude=var/report*";
     print_r("Copying with \n" . $command . " use this password: ");
     print_r($ssh_pass);
     while (@ ob_end_flush()); // end all output buffers if any
