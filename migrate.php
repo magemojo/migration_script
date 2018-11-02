@@ -288,6 +288,25 @@ function update_base_urls($options,$dbinfo) {
   $conn->close();
 }
 
+#update default cookie_domain
+function update_cookie_domain($options,$dbinfo) {
+  print_r("Updating cookie default cookie domain only...\n");
+  $conn = new mysqli('mysql', $options['db_user'], $options['db_pass'], $options['db']);
+// Check connection
+  if ($conn->connect_error) {
+      die("Connection failed: " . $conn->connect_error);
+  } 
+
+  $sql = 'update '. $dbinfo['table_prefix'] . 'core_config_data set value=".mojostratus.io" where path like "%cookie_domain%" and scope_id=0';
+  if ($conn->query($sql) === TRUE) {
+      echo "Record updated successfully";
+  } else {
+      echo "Error updating record: " . $conn->error;
+  }
+
+  $conn->close();
+}
+
 
 function deploy_m2($options) {
   echo "php " . $options['web_root'] . "bin/magento maintenance:enable";
@@ -345,6 +364,7 @@ if ($options['magento']=="m2") {
   import_database($options,$globals);
 
   update_base_urls($options,$dbinfo);
+  update_cookie_domain($options,$dbinfo);
   deploy_m2($options);
   }
   
@@ -359,6 +379,7 @@ if ($options['magento']=="m2") {
     import_database($options,$globals);
     update_base_urls($options,$dbinfo);
     reindex_m1($options['web_root']); //needs made
+    update_cookie_domain($options,$dbinfo);
     clear_cache_m1($options['web_root']); //needs made
     echo "migration complete, in theory";
   }
