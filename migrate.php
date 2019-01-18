@@ -28,10 +28,10 @@ print_r($options);
 
 class SimpleXMLExtended extends SimpleXMLElement {
   public function addCData($cData_text) {
-    $node = dom_import_simplexml($this); 
-    $no   = $node->ownerDocument; 
-    $node->appendChild($no->createCDataSection($cData_text)); 
-  } 
+    $node = dom_import_simplexml($this);
+    $no   = $node->ownerDocument;
+    $node->appendChild($no->createCDataSection($cData_text));
+  }
 }
 
 //functionssaaaa
@@ -42,7 +42,7 @@ function return_redis_config() {
       array (
         'frontend' =>
         array (
-          'default' => 
+          'default' =>
           array (
             'backend' => 'Cm_Cache_Backend_Redis',
             'backend_options' =>
@@ -106,7 +106,7 @@ function get_remote_db_info_m1($local_xml_path) {
   $db_pass=$xml->global->resources->default_setup->connection->password;
   $db_host=$xml->global->resources->default_setup->connection->host;
   $table_prefix=$xml->global->resources->db->table_prefix;
-  
+
   $db_info  = array(
   'db'=> $db,
   'db_user'=> $db_user,
@@ -120,7 +120,7 @@ function get_remote_db_info_m1($local_xml_path) {
 function set_db_creds_m2($env_data,$options) {
           $env_data['db']['connection']['default']['dbname']=$options['db'];
           $env_data['db']['connection']['default']['username']=$options['db_user'];
-          $env_data['db']['connection']['default']['password']=$options['db_pass']; 
+          $env_data['db']['connection']['default']['password']=$options['db_pass'];
           $env_data['db']['connection']['default']['host']='mysql';
           return $env_data;
 }
@@ -173,8 +173,8 @@ function update_local_xml_m1($options,$local_xml_path) {
   $xml->global->cache->backend_options->use_lua->addCData('0');
   $xml->global->cache->backend='';
   $xml->global->cache->backend->addCData('Cm_Cache_Backend_Redis');
-  
-  
+
+
   $xml->asXml($local_xml_path);
 }
 
@@ -221,7 +221,7 @@ function run_command($command) {
 
 function rsync($options) {
     //construct command for readability
-    $command='rsync -avz -e "ssh -p ' . $options['ssh_port'] . '" ' . $options['ssh_user'] . '@' . $options['ssh_url'] . ":" . $options['ssh_web_root'] . " " . $options['web_root'] . " --copy-links --exclude=var/log/* --exclude=var/cache* --exclude=var/session* --exclude=var/report*";
+    $command='rsync -avz -e "ssh -p ' . $options['ssh_port'] . '" ' . $options['ssh_user'] . '@' . $options['ssh_url'] . ":" . $options['ssh_web_root'] . " " . $options['web_root'] . " --copy-links --exclude=var/* --max-size=100M --delete";
     print_r("Copying with \n" . $command . " use this password: ");
     print_r($ssh_pass);
     while (@ ob_end_flush()); // end all output buffers if any
@@ -276,7 +276,7 @@ function update_base_urls($options,$dbinfo) {
 // Check connection
   if ($conn->connect_error) {
       die("Connection failed: " . $conn->connect_error);
-  } 
+  }
 
   $sql = 'update '. $dbinfo['table_prefix'] . 'core_config_data set value="' . $options['base_url'] . '" where path like "web/%secure/base_url" and scope="default"';
   if ($conn->query($sql) === TRUE) {
@@ -295,7 +295,7 @@ function update_cookie_domain($options,$dbinfo) {
 // Check connection
   if ($conn->connect_error) {
       die("Connection failed: " . $conn->connect_error);
-  } 
+  }
 
   $sql = 'update '. $dbinfo['table_prefix'] . 'core_config_data set value=".mojostratus.io" where path like "%cookie_domain%" and scope_id=0';
   if ($conn->query($sql) === TRUE) {
@@ -329,8 +329,6 @@ function clear_cache_m1(){
 //drop database
 drop_database_tables($globals['mysql_host'],$options['db'],$options['db_user'],$options['db_pass']);
 //make sure target web root is clear first
-echo "Deleting current web root..";
-run_command("rm -rf " . $options['web_root']);
 //now sync files over
 echo "Starting rsync...";
 rsync($options);
@@ -367,8 +365,8 @@ if ($options['magento']=="m2") {
   update_cookie_domain($options,$dbinfo);
   deploy_m2($options);
   }
-  
-  
+
+
   if ($options['magento']=="m1") {
     $db_info=get_remote_db_info_m1($options['web_root'] . "app/etc/local.xml"); //completed
     //dump database from remote host
