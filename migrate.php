@@ -192,6 +192,37 @@ function set_redis_m2($env_data) {
     return $env_data;
 }
 
+function set_redis_session_m2($env_data){
+  if ( array_key_exists('session', $env_data) ) {
+     print_r("Setting redis ...\n");
+     $env_data['session']['save'] = 'redis';
+     $env_data['session']['redis'] = array (
+    'host' => 'redis',
+    'port' => '6379',
+    'password' => '',
+    'timeout' => '2.5',
+    'persistent_identifier' => '',
+    'database' => '2',
+    'compression_threshold' => '2048',
+    'compression_library' => 'gzip',
+    'log_level' => '1',
+    'max_concurrency' => '6',
+    'break_after_frontend' => '5',
+    'break_after_adminhtml' => '30',
+    'first_lifetime' => '600',
+    'bot_first_lifetime' => '60',
+    'bot_lifetime' => '7200',
+    'disable_locking' => '0',
+    'min_lifetime' => '60',
+    'max_lifetime' => '2592000'
+  );
+   } else {
+       print_r("no sessions data set, check env.php, could be invalid! Exiting....");
+       exit(1);
+   }
+   return $env_data;
+}
+
 function set_memcache_m2($env_data) {
     //basically clone of redis method
      if ( array_key_exists('session', $env_data) ) {
@@ -343,7 +374,7 @@ if ($options['magento']=="m2") {
   //set redis configuration
   $env_data = set_redis_m2($env_data);
   //set memcache sessions for Stratus
-  $env_data = set_memcache_m2($env_data);
+  $env_data = set_redis_session_m2($env_data);
   //set db creds
   $env_data=set_db_creds_m2($env_data,$options);
   //write to file
