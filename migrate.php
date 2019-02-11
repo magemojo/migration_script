@@ -140,11 +140,31 @@ function update_local_xml_m1($options,$local_xml_path) {
   $db_user=$xml->global->resources->default_setup->connection->username->addCData($options['db_user']);
   $db_pass=$xml->global->resources->default_setup->connection->password->addCData($options['db_pass']);
   $db_host=$xml->global->resources->default_setup->connection->host->addCData('mysql');
-  //Redis and Memcache
+  //Redis and redis sessions
   $xml->global->session_save='';
-  $xml->global->session_save->addCData("memcache");
+  $xml->global->session_save->addCData("db");
   $xml->global->session_save_path='';
-  $xml->global->session_save_path->addCData("tcp://memcache:11211?persistent=0&weight=2&timeout=60&retry_interval=10");
+  $xml->global->redis_session->host='redis';
+  $xml->global->redis_session->port='re6379dis';
+  $xml->global->redis_session->password='';
+  $xml->global->redis_session->timeout='2.5';
+  $xml->global->redis_session->persistent='';
+  $xml->global->redis_session->db='1';
+  $xml->global->redis_session->compression_threshold='2048';
+  $xml->global->redis_session->compression_lib='gzip';
+  $xml->global->redis_session->log_level='1';
+  $xml->global->redis_session->max_concurrency='6';
+  $xml->global->redis_session->break_after_frontend='30';
+  $xml->global->redis_session->fail_after='10';
+  $xml->global->redis_session->break_after_adminhtml='30';
+  $xml->global->redis_session->first_lifetime='600';
+  $xml->global->redis_session->bot_first_lifetime='60';
+  $xml->global->redis_session->disable_locking='0';
+  $xml->global->redis_session->min_lifetime='60';
+  $xml->global->redis_session->max_lifetime='2592000';
+
+
+   //redis cache
   $xml->global->cache->backend_options->server='';
   $xml->global->cache->backend_options->server->addCData("redis");
   $xml->global->cache->backend_options->port='';
