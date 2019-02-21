@@ -360,7 +360,7 @@ function update_cookie_domain($options,$dbinfo) {
 
 #update default cookie_domain
 function blackhole_m1_tables($options,$dbinfo) {
-    print_r("Blackhole a few m1 tables...\n");
+    print_r("\nBlackholing a few m1 tables...\n");
     $conn = new mysqli('mysql', $options['db_user'], $options['db_pass'], $options['db']);
     // Check connection
     if ($conn->connect_error) {
@@ -373,12 +373,13 @@ function blackhole_m1_tables($options,$dbinfo) {
         $conn->query($query);
         $query = "ALTER TABLE ".$dbinfo['table_prefix'].$table." ENGINE=BLACKHOLE;";
         if ($conn->query($query) === TRUE) {
-            echo "Successfully blackhole'd table: ".$dbinfo['table_prefix'].$table."\n";
+            print_r("Successfully blackhole'd table: ".$dbinfo['table_prefix'].$table."\n");
         } else {
-            echo "Failed to blackhole table '".$dbinfo['table_prefix'].$table."' - Error: ".$conn->error."\n";
+            print_r("Failed to blackhole table '".$dbinfo['table_prefix'].$table."' - Error: ".$conn->error."\n");
         }
     }
-    
+
+    print_r("\n");
     $conn->close();
 }
 
