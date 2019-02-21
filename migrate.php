@@ -369,9 +369,9 @@ function blackhole_m1_tables($options,$dbinfo) {
 
     $target_tables = ['log_url', 'log_url_info', 'log_visitor', 'log_url_info'];
     foreach($target_tables as $table){
-        $query = "DELETE FROM ".$dbinfo['table_prefix'].$table.";"
+        $query = "DELETE FROM ".$dbinfo['table_prefix'].$table.";";
         $conn->query($query);
-        $query = "ALTER TABLE ".$dbinfo['table_prefix'].$table." ENGINE=BLACKHOLE;"
+        $query = "ALTER TABLE ".$dbinfo['table_prefix'].$table." ENGINE=BLACKHOLE;";
         if ($conn->query($query) === TRUE) {
             echo "Successfully blackhole'd table: ".$dbinfo['table_prefix'].$table."\n";
         } else {
