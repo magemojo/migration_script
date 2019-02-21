@@ -145,7 +145,7 @@ function update_local_xml_m1($options,$local_xml_path) {
   $xml->global->session_save->addCData("db");
   $xml->global->session_save_path='';
   $xml->global->redis_session->host='redis';
-  $xml->global->redis_session->port='re6379dis';
+  $xml->global->redis_session->port='6379';
   $xml->global->redis_session->password='';
   $xml->global->redis_session->timeout='2.5';
   $xml->global->redis_session->persistent='';
