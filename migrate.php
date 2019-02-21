@@ -367,7 +367,7 @@ function blackhole_m1_tables($options,$dbinfo) {
         die("Connection failed: " . $conn->connect_error);
     }
 
-    $target_tables = ['log_url', 'log_url_info', 'log_visitor', 'log_url_info'];
+    $target_tables = ['log_url', 'log_url_info', 'log_visitor', 'log_visitor_info'];
     foreach($target_tables as $table){
         $query = "DELETE FROM ".$dbinfo['table_prefix'].$table.";";
         $conn->query($query);
