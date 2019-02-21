@@ -358,6 +358,29 @@ function update_cookie_domain($options,$dbinfo) {
   $conn->close();
 }
 
+#update default cookie_domain
+function blackhole_m1_tables($options,$dbinfo) {
+    print_r("Blackhole a few m1 tables...\n");
+    $conn = new mysqli('mysql', $options['db_user'], $options['db_pass'], $options['db']);
+    // Check connection
+    if ($conn->connect_error) {
+        die("Connection failed: " . $conn->connect_error);
+    }
+
+    $target_tables = ['log_url', 'log_url_info', 'log_visitor', 'log_url_info'];
+    foreach($target_tables as $table){
+        $query = "DELETE FROM ".$dbinfo['table_prefix'].$table.";"
+        $conn->query($query);
+        $query = "ALTER TABLE ".$dbinfo['table_prefix'].$table." ENGINE=BLACKHOLE;"
+        if ($conn->query($query) === TRUE) {
+            echo "Successfully blackhole'd table: ".$dbinfo['table_prefix'].$table."\n";
+        } else {
+            echo "Failed to blackhole table '".$dbinfo['table_prefix'].$table."' - Error: ".$conn->error."\n";
+        }
+    }
+    
+    $conn->close();
+}
 
 function deploy_m2($options) {
   echo "php " . $options['web_root'] . "bin/magento maintenance:enable";
@@ -429,6 +452,7 @@ if ($options['magento']=="m2") {
     update_base_urls($options,$dbinfo);
     reindex_m1($options['web_root']); //needs made
     update_cookie_domain($options,$dbinfo);
+    blackhole_m1_tables($options,$dbinfo);
     clear_cache_m1($options['web_root']); //needs made
     echo "migration complete, in theory";
   }
