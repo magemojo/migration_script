@@ -145,7 +145,7 @@ function update_local_xml_m1($options,$local_xml_path) {
   $xml->global->session_save->addCData("db");
   $xml->global->session_save_path='';
   $xml->global->redis_session->host='redis';
-  $xml->global->redis_session->port='re6379dis';
+  $xml->global->redis_session->port='6379';
   $xml->global->redis_session->password='';
   $xml->global->redis_session->timeout='2.5';
   $xml->global->redis_session->persistent='';
@@ -291,7 +291,7 @@ function dump_remote_db($options,$db_info) {
   //db_info assumed to be array extracted from remote host
   //ssh $PROD_SSH_USER@$PROD_SSH_HOST "mysqldump --quick -u$PROD_USER -p$PROD_PASS $PROD_DATABASE" > prod_dump.sql
   //form $command
-  $command="ssh -p " . $options['ssh_port'] . ' ' . $options['ssh_user'] . '@' . $options['ssh_url'] . ' "mysqldump -h ' . $db_info['db_host'] .  ' --quick -u' . $db_info['db_user'] . ' -p' . $db_info['db_pass'] . ' ' . $db_info['db'] . '" > /srv/prod_dump.sql';
+  $command="ssh -p " . $options['ssh_port'] . ' ' . $options['ssh_user'] . '@' . $options['ssh_url'] . ' "mysqldump -h ' . $db_info['db_host'] .  ' --quick -u' . $db_info['db_user'] . ' -p\'' . $db_info['db_pass'] . '\' ' . $db_info['db'] . '" > /srv/prod_dump.sql';
   print_r("Copying with \n" . $command . " use this password: ");
   print_r($options['ssh_pass']);
   run_command($command);
@@ -316,7 +316,7 @@ function drop_database_tables($db_host,$db_name,$db_user,$db_pass) {
 }
 
 function import_database($options,$globals) {
-  $command='pv ' . $globals['prod_dump'] . '| mysql -h mysql ' . $globals['db_host']  . ' -u ' . $options['db_user'] . ' -p' . $options['db_pass'] . ' ' . $options['db'];
+  $command='pv ' . $globals['prod_dump'] . '| mysql -h mysql ' . $globals['db_host']  . ' -u ' . $options['db_user'] . ' -p\'' . $options['db_pass'] . '\' ' . $options['db'];
   print_r($command);
   run_command($command);
 }
@@ -358,6 +358,30 @@ function update_cookie_domain($options,$dbinfo) {
   $conn->close();
 }
 
+#update default cookie_domain
+function blackhole_m1_tables($options,$dbinfo) {
+    print_r("\nBlackholing a few m1 tables...\n");
+    $conn = new mysqli('mysql', $options['db_user'], $options['db_pass'], $options['db']);
+    // Check connection
+    if ($conn->connect_error) {
+        die("Connection failed: " . $conn->connect_error);
+    }
+
+    $target_tables = ['log_url', 'log_url_info', 'log_visitor', 'log_visitor_info'];
+    foreach($target_tables as $table){
+        $query = "DELETE FROM ".$dbinfo['table_prefix'].$table.";";
+        $conn->query($query);
+        $query = "ALTER TABLE ".$dbinfo['table_prefix'].$table." ENGINE=BLACKHOLE;";
+        if ($conn->query($query) === TRUE) {
+            print_r("Successfully blackhole'd table: ".$dbinfo['table_prefix'].$table."\n");
+        } else {
+            print_r("Failed to blackhole table '".$dbinfo['table_prefix'].$table."' - Error: ".$conn->error."\n");
+        }
+    }
+
+    print_r("\n");
+    $conn->close();
+}
 
 function deploy_m2($options) {
   echo "php " . $options['web_root'] . "bin/magento maintenance:enable";
@@ -429,6 +453,7 @@ if ($options['magento']=="m2") {
     update_base_urls($options,$dbinfo);
     reindex_m1($options['web_root']); //needs made
     update_cookie_domain($options,$dbinfo);
+    blackhole_m1_tables($options,$dbinfo);
     clear_cache_m1($options['web_root']); //needs made
     echo "migration complete, in theory";
   }
