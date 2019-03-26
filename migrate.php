@@ -311,7 +311,7 @@ function import_database($options,$globals) {
   run_command($command);
 }
 
-function update_base_urls($options,$stratus_db_info) {
+function update_base_urls($options,$remote_db_info) {
   print_r("Updating default base URLS only...\n");
   $conn = new mysqli('mysql', $options['db_user'], $options['db_pass'], $options['db']);
 // Check connection
@@ -319,7 +319,7 @@ function update_base_urls($options,$stratus_db_info) {
       die("Connection failed: " . $conn->connect_error);
   }
 
-  $sql = 'update '. $stratus_db_info['table_prefix'] . 'core_config_data set value="' . $options['base_url'] . '" where path like "web/%secure/base_url" and scope="default"';
+  $sql = 'update '. $remote_db_info['table_prefix'] . 'core_config_data set value="' . $options['base_url'] . '" where path like "web/%secure/base_url" and scope="default"';
   if ($conn->query($sql) === TRUE) {
       echo "Record updated successfully";
   } else {
@@ -330,7 +330,7 @@ function update_base_urls($options,$stratus_db_info) {
 }
 
 #update default cookie_domain
-function update_cookie_domain($options,$stratus_db_info) {
+function update_cookie_domain($options,$remote_db_info) {
   print_r("Updating cookie default cookie domain only...\n");
   $conn = new mysqli('mysql', $options['db_user'], $options['db_pass'], $options['db']);
 // Check connection
@@ -338,7 +338,7 @@ function update_cookie_domain($options,$stratus_db_info) {
       die("Connection failed: " . $conn->connect_error);
   }
 
-  $sql = 'update '. $stratus_db_info['table_prefix'] . 'core_config_data set value=".mojostratus.io" where path like "%cookie_domain%" and scope_id=0';
+  $sql = 'update '. $remote_db_info['table_prefix'] . 'core_config_data set value=".mojostratus.io" where path like "%cookie_domain%" and scope_id=0';
   if ($conn->query($sql) === TRUE) {
       echo "Record updated successfully";
   } else {
@@ -349,7 +349,7 @@ function update_cookie_domain($options,$stratus_db_info) {
 }
 
 #update default cookie_domain
-function blackhole_m1_tables($options,$stratus_db_info) {
+function blackhole_m1_tables($options,$remote_db_info) {
     print_r("\nBlackholing a few m1 tables...\n");
     $conn = new mysqli('mysql', $options['db_user'], $options['db_pass'], $options['db']);
     // Check connection
@@ -359,13 +359,13 @@ function blackhole_m1_tables($options,$stratus_db_info) {
 
     $target_tables = ['log_url', 'log_url_info', 'log_visitor', 'log_visitor_info'];
     foreach($target_tables as $table){
-        $query = "DELETE FROM ".$stratus_db_info['table_prefix'].$table.";";
+        $query = "DELETE FROM ".$remote_db_info['table_prefix'].$table.";";
         $conn->query($query);
-        $query = "ALTER TABLE ".$stratus_db_info['table_prefix'].$table." ENGINE=BLACKHOLE;";
+        $query = "ALTER TABLE ".$remote_db_info['table_prefix'].$table." ENGINE=BLACKHOLE;";
         if ($conn->query($query) === TRUE) {
-            print_r("Successfully blackhole'd table: ".$stratus_db_info['table_prefix'].$table."\n");
+            print_r("Successfully blackhole'd table: ".$remote_db_info['table_prefix'].$table."\n");
         } else {
-            print_r("Failed to blackhole table '".$stratus_db_info['table_prefix'].$table."' - Error: ".$conn->error."\n");
+            print_r("Failed to blackhole table '".$remote_db_info['table_prefix'].$table."' - Error: ".$conn->error."\n");
         }
     }
 
@@ -426,24 +426,24 @@ if ($options['magento']=="m2") {
   //files copy , database moved, lets import something
   import_database($options,$globals);
 
-  update_base_urls($options,$stratus_db_info);
-  update_cookie_domain($options,$stratus_db_info);
+  update_base_urls($options,$remote_db_info);
+  update_cookie_domain($options,$remote_db_info);
   deploy_m2($options);
   }
 
 
   if ($options['magento']=="m1") {
-    $remote_db_info=get_remote_db_info_m1($options['web_root'] . "app/etc/local.xml"); //completed
+    $remote_db_info=get_remote_db_info_m1($options['web_root'] . "app/etc/local.xml");
     //dump database from remote host
     dump_remote_db($options,$remote_db_info);
     update_local_xml_m1($options,$options['web_root'] . "app/etc/local.xml");
     //remove definers
     run_command("sed -i 's/DEFINER=[^*]*\*/\*/g' /srv/prod_dump.sql");
     import_database($options,$globals);
-    update_base_urls($options,$stratus_db_info);
+    update_base_urls($options,$remote_db_info);
     reindex_m1($options['web_root']); //needs made
-    update_cookie_domain($options,$stratus_db_info);
-    blackhole_m1_tables($options,$stratus_db_info);
+    update_cookie_domain($options,$remote_db_info);
+    blackhole_m1_tables($options,$remote_db_info);
     clear_cache_m1($options['web_root']); //needs made
     echo "migration complete, in theory";
   }
