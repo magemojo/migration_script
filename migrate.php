@@ -262,7 +262,7 @@ function run_command($command) {
 
 function rsync($options) {
     //construct command for readability
-    $command='rsync -avz -e "ssh -p ' . $options['ssh_port'] . '" ' . $options['ssh_user'] . '@' . $options['ssh_url'] . ":" . $options['ssh_web_root'] . " " . $options['web_root'] . " --copy-links --exclude=var/* --max-size=100M --delete";
+    $command='rsync -avvz --progress -e "ssh -p ' . $options['ssh_port'] . '" ' . $options['ssh_user'] . '@' . $options['ssh_url'] . ":" . $options['ssh_web_root'] . " " . $options['web_root'] . " --copy-links --exclude=var/* --max-size=100M --delete";
     print_r("Copying with \n" . $command . " use this password: ");
     print_r($ssh_pass);
     while (@ ob_end_flush()); // end all output buffers if any
@@ -281,7 +281,7 @@ function dump_remote_db($options,$remote_db_info) {
   //db_info assumed to be array extracted from remote host
   //ssh $PROD_SSH_USER@$PROD_SSH_HOST "mysqldump --quick -u$PROD_USER -p$PROD_PASS $PROD_DATABASE" > prod_dump.sql
   //form $command
-  $command="ssh -p " . $options['ssh_port'] . ' ' . $options['ssh_user'] . '@' . $options['ssh_url'] . ' "mysqldump -h ' . $remote_db_info['db_host'] .  ' --quick -u' . $remote_db_info['db_user'] . ' -p\'' . str_replace("$", "\\$", $remote_db_info['db_pass']) . '\' ' . $remote_db_info['db'] . '" > /srv/prod_dump.sql';
+  $command="ssh -p " . $options['ssh_port'] . ' ' . $options['ssh_user'] . '@' . $options['ssh_url'] . ' "mysqldump --verbose -h ' . $remote_db_info['db_host'] .  ' --quick -u' . $remote_db_info['db_user'] . ' -p\'' . str_replace("$", "\\$", $remote_db_info['db_pass']) . '\' ' . $remote_db_info['db'] . '" > /srv/prod_dump.sql';
   print_r("Copying with \n" . $command . " use this password: ");
   print_r($options['ssh_pass']);
   run_command($command);
