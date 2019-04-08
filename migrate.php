@@ -27,45 +27,37 @@ print_r($options);
 //classes
 
 class SimpleXMLExtended extends SimpleXMLElement {
-  public function addCData($cData_text) {
-    $node = dom_import_simplexml($this);
-    $no   = $node->ownerDocument;
-    $node->appendChild($no->createCDataSection($cData_text));
-  }
+    public function addCData($cData_text) {
+        $node = dom_import_simplexml($this);
+        $no = $node->ownerDocument;
+        $node->appendChild($no->createCDataSection($cData_text));
+    }
 }
 
-//functionssaaaa
 function return_redis_config() {
-//array for PHP config
-    return array (
-     'cache' =>
-      array (
-        'frontend' =>
-        array (
-          'default' =>
-          array (
-            'backend' => 'Cm_Cache_Backend_Redis',
-            'backend_options' =>
-            array (
-              'server' => 'redis',
-              'database' => '0',
-              'port' => '6379',
-            ),
-          ),
-          'page_cache' =>
-          array (
-            'backend' => 'Cm_Cache_Backend_Redis',
-            'backend_options' =>
-            array (
-              'server' => 'redis',
-              'port' => '6379',
-              'database' => '1',
-              'compress_data' => '0',
-            ),
-          ),
-        ),
-      )
-    );
+    return [
+        'cache' => [
+            'frontend' => [
+                'default' => [
+                    'backend' => 'Cm_Cache_Backend_Redis',
+                    'backend_options' => [
+                        'server' => 'redis',
+                        'database' => '0',
+                        'port' => '6379'
+                    ],
+                ],
+                'page_cache' => [
+                    'backend' => 'Cm_Cache_Backend_Redis',
+                    'backend_options' => [
+                        'server' => 'redis',
+                        'port' => '6379',
+                        'database' => '1',
+                        'compress_data' => '0',
+                    ],
+                ],
+            ],
+        ]
+    ];
 }
 
 function load_env_m2($env_path){
@@ -74,27 +66,25 @@ function load_env_m2($env_path){
         } catch (\Exception $e) {
         throw new \Exception("Could not open env.php" . $e);
         exit(1);
-        }
-        return $env_data;
+    }
+    return $env_data;
 }
 
-
 function get_remote_db_info_m2($env_path){
-
     try {
         $env_data = include $env_path;
-        } catch (\Exception $e) {
+    } catch (\Exception $e) {
         throw new \Exception("Could not open env.php" . $e);
         exit(1);
-        }
-    $db_info  = array(
-    'db'=> $env_data['db']['connection']['default']['dbname'],
-    'db_user'=> $env_data['db']['connection']['default']['username'],
-    'db_pass' => $env_data['db']['connection']['default']['password'],
-    'db_host' => $env_data['db']['connection']['default']['host'],
-    'table_prefix' => $env_data['db']['table_prefix']
+    }
+    $remote_db_info  = array(
+        'db'=> $env_data['db']['connection']['default']['dbname'],
+        'db_user'=> $env_data['db']['connection']['default']['username'],
+        'db_pass' => $env_data['db']['connection']['default']['password'],
+        'db_host' => $env_data['db']['connection']['default']['host'],
+        'table_prefix' => $env_data['db']['table_prefix']
     );
-    return $db_info;
+    return $remote_db_info;
 }
 
 function get_remote_db_info_m1($local_xml_path) {
@@ -107,14 +97,14 @@ function get_remote_db_info_m1($local_xml_path) {
   $db_host=$xml->global->resources->default_setup->connection->host;
   $table_prefix=$xml->global->resources->db->table_prefix;
 
-  $db_info  = array(
+  $remote_db_info  = array(
   'db'=> $db,
   'db_user'=> $db_user,
   'db_pass' => $db_pass,
   'db_host' => $db_host,
   'table_prefix' => $table_prefix
   );
-  return $db_info;
+  return $remote_db_info;
 }
 
 function set_db_creds_m2($env_data,$options) {
@@ -272,7 +262,7 @@ function run_command($command) {
 
 function rsync($options) {
     //construct command for readability
-    $command='rsync -avz -e "ssh -p ' . $options['ssh_port'] . '" ' . $options['ssh_user'] . '@' . $options['ssh_url'] . ":" . $options['ssh_web_root'] . " " . $options['web_root'] . " --copy-links --exclude=var/* --max-size=100M --delete";
+    $command='rsync -avzP -e "ssh -p ' . $options['ssh_port'] . '" ' . $options['ssh_user'] . '@' . $options['ssh_url'] . ":" . $options['ssh_web_root'] . " " . $options['web_root'] . " --copy-links --exclude=var/* --max-size=100M --delete";
     print_r("Copying with \n" . $command . " use this password: ");
     print_r($ssh_pass);
     while (@ ob_end_flush()); // end all output buffers if any
@@ -287,11 +277,11 @@ function rsync($options) {
     echo '\n';
 }
 
-function dump_remote_db($options,$db_info) {
+function dump_remote_db($options,$remote_db_info) {
   //db_info assumed to be array extracted from remote host
   //ssh $PROD_SSH_USER@$PROD_SSH_HOST "mysqldump --quick -u$PROD_USER -p$PROD_PASS $PROD_DATABASE" > prod_dump.sql
   //form $command
-  $command="ssh -p " . $options['ssh_port'] . ' ' . $options['ssh_user'] . '@' . $options['ssh_url'] . ' "mysqldump -h ' . $db_info['db_host'] .  ' --quick -u' . $db_info['db_user'] . ' -p\'' . $db_info['db_pass'] . '\' ' . $db_info['db'] . '" > /srv/prod_dump.sql';
+  $command="ssh -p " . $options['ssh_port'] . ' ' . $options['ssh_user'] . '@' . $options['ssh_url'] . ' "mysqldump --verbose -h ' . $remote_db_info['db_host'] .  ' --quick -u' . $remote_db_info['db_user'] . ' -p\'' . str_replace("$", "\\$", $remote_db_info['db_pass']) . '\' ' . $remote_db_info['db'] . '" > /srv/prod_dump.sql';
   print_r("Copying with \n" . $command . " use this password: ");
   print_r($options['ssh_pass']);
   run_command($command);
@@ -321,7 +311,7 @@ function import_database($options,$globals) {
   run_command($command);
 }
 
-function update_base_urls($options,$dbinfo) {
+function update_base_urls($options,$remote_db_info) {
   print_r("Updating default base URLS only...\n");
   $conn = new mysqli('mysql', $options['db_user'], $options['db_pass'], $options['db']);
 // Check connection
@@ -329,7 +319,7 @@ function update_base_urls($options,$dbinfo) {
       die("Connection failed: " . $conn->connect_error);
   }
 
-  $sql = 'update '. $dbinfo['table_prefix'] . 'core_config_data set value="' . $options['base_url'] . '" where path like "web/%secure/base_url" and scope="default"';
+  $sql = 'update '. $remote_db_info['table_prefix'] . 'core_config_data set value="' . $options['base_url'] . '" where path like "web/%secure/base_url" and scope="default"';
   if ($conn->query($sql) === TRUE) {
       echo "Record updated successfully";
   } else {
@@ -340,7 +330,7 @@ function update_base_urls($options,$dbinfo) {
 }
 
 #update default cookie_domain
-function update_cookie_domain($options,$dbinfo) {
+function update_cookie_domain($options,$remote_db_info) {
   print_r("Updating cookie default cookie domain only...\n");
   $conn = new mysqli('mysql', $options['db_user'], $options['db_pass'], $options['db']);
 // Check connection
@@ -348,7 +338,7 @@ function update_cookie_domain($options,$dbinfo) {
       die("Connection failed: " . $conn->connect_error);
   }
 
-  $sql = 'update '. $dbinfo['table_prefix'] . 'core_config_data set value=".mojostratus.io" where path like "%cookie_domain%" and scope_id=0';
+  $sql = 'update '. $remote_db_info['table_prefix'] . 'core_config_data set value=".mojostratus.io" where path like "%cookie_domain%" and scope_id=0';
   if ($conn->query($sql) === TRUE) {
       echo "Record updated successfully";
   } else {
@@ -359,7 +349,7 @@ function update_cookie_domain($options,$dbinfo) {
 }
 
 #update default cookie_domain
-function blackhole_m1_tables($options,$dbinfo) {
+function blackhole_m1_tables($options,$remote_db_info) {
     print_r("\nBlackholing a few m1 tables...\n");
     $conn = new mysqli('mysql', $options['db_user'], $options['db_pass'], $options['db']);
     // Check connection
@@ -369,13 +359,13 @@ function blackhole_m1_tables($options,$dbinfo) {
 
     $target_tables = ['log_url', 'log_url_info', 'log_visitor', 'log_visitor_info'];
     foreach($target_tables as $table){
-        $query = "DELETE FROM ".$dbinfo['table_prefix'].$table.";";
+        $query = "DELETE FROM ".$remote_db_info['table_prefix'].$table.";";
         $conn->query($query);
-        $query = "ALTER TABLE ".$dbinfo['table_prefix'].$table." ENGINE=BLACKHOLE;";
+        $query = "ALTER TABLE ".$remote_db_info['table_prefix'].$table." ENGINE=BLACKHOLE;";
         if ($conn->query($query) === TRUE) {
-            print_r("Successfully blackhole'd table: ".$dbinfo['table_prefix'].$table."\n");
+            print_r("Successfully blackhole'd table: ".$remote_db_info['table_prefix'].$table."\n");
         } else {
-            print_r("Failed to blackhole table '".$dbinfo['table_prefix'].$table."' - Error: ".$conn->error."\n");
+            print_r("Failed to blackhole table '".$remote_db_info['table_prefix'].$table."' - Error: ".$conn->error."\n");
         }
     }
 
@@ -410,9 +400,9 @@ rsync($options);
 //get old db info for remote var_dump
 
 if ($options['magento']=="m2") {
-  $db_info=get_remote_db_info_m2($options['web_root'] . "app/etc/env.php");
+  $remote_db_info=get_remote_db_info_m2($options['web_root'] . "app/etc/env.php");
   //dump database from remote host
-  dump_remote_db($options,$db_info);
+  dump_remote_db($options,$remote_db_info);
   //load env.php
   $env_data = load_env_m2($options['web_root'] . "app/etc/env.php");
   //set redis configuration
@@ -436,24 +426,24 @@ if ($options['magento']=="m2") {
   //files copy , database moved, lets import something
   import_database($options,$globals);
 
-  update_base_urls($options,$dbinfo);
-  update_cookie_domain($options,$dbinfo);
+  update_base_urls($options,$remote_db_info);
+  update_cookie_domain($options,$remote_db_info);
   deploy_m2($options);
   }
 
 
   if ($options['magento']=="m1") {
-    $db_info=get_remote_db_info_m1($options['web_root'] . "app/etc/local.xml"); //completed
+    $remote_db_info=get_remote_db_info_m1($options['web_root'] . "app/etc/local.xml");
     //dump database from remote host
-    dump_remote_db($options,$db_info);
+    dump_remote_db($options,$remote_db_info);
     update_local_xml_m1($options,$options['web_root'] . "app/etc/local.xml");
     //remove definers
     run_command("sed -i 's/DEFINER=[^*]*\*/\*/g' /srv/prod_dump.sql");
     import_database($options,$globals);
-    update_base_urls($options,$dbinfo);
+    update_base_urls($options,$remote_db_info);
     reindex_m1($options['web_root']); //needs made
-    update_cookie_domain($options,$dbinfo);
-    blackhole_m1_tables($options,$dbinfo);
+    update_cookie_domain($options,$remote_db_info);
+    blackhole_m1_tables($options,$remote_db_info);
     clear_cache_m1($options['web_root']); //needs made
     echo "migration complete, in theory";
   }
