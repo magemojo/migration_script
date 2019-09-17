@@ -269,7 +269,7 @@ function run_command($command) {
 
 function rsync($options) {
 	//construct command for readability
-	$command='rsync -avzP -e "ssh -p ' . $options['ssh_port'] . '" ' . $options['ssh_user'] . '@' . $options['ssh_url'] . ":" . $options['ssh_web_root'] . " " . $options['web_root'] . " --copy-links --max-size=100M --delete";
+	$command='rsync -crLtxmzhP --delete -e "ssh -p ' . $options['ssh_port'] . '" ' . $options['ssh_user'] . '@' . $options['ssh_url'] . ":" . $options['ssh_web_root'] . " " . $options['web_root'] . " --max-size=100M";
 	print_r("Copying with " . PHP_EOL . $command . " use this password: ");
 	print_r($ssh_pass);
 	while (@ ob_end_flush()); // end all output buffers if any
