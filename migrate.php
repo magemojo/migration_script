@@ -373,7 +373,7 @@ function blackhole_m1_tables($options,$remote_db_info) {
 		}
 	}
 
-	print_r(PHP_EOL);
+	echo PHP_EOL;
 	$conn->close();
 }
 
@@ -391,6 +391,7 @@ function reindex_m1($web_root) {
 }
 
 function clear_cache_m1(){
+	echo "Flushing magento 1 caches..."
 	run_command("rm -rf ".$web_root."var/cache");
 	run_command("redis-cli -h redis flushall");
 }
@@ -434,16 +435,20 @@ if ($options['magento']=="m2") {
 
 if ($options['magento']=="m1") {
 	$remote_db_info = get_remote_db_info_m1($options['web_root']."app/etc/local.xml");
+
 	//dump database from remote host
 	dump_remote_db($options, $remote_db_info, $globals);
+
 	update_local_xml_m1($options,$options['web_root']."app/etc/local.xml");
+
 	//remove definers
 	run_command("sed -i 's/DEFINER=[^*]*\*/\*/g' ".$globals["mig_dump_file"]);
-	import_database($options,$globals);
-	update_base_urls($options,$remote_db_info);
-	reindex_m1($options['web_root']); //needs made
-	update_cookie_domain($options,$remote_db_info);
-	blackhole_m1_tables($options,$remote_db_info);
-	clear_cache_m1($options['web_root']); //needs made
-	echo "migration complete, in theory";
+
+	import_database($options, $globals);
+	update_base_urls($options, $remote_db_info);
+	reindex_m1($options['web_root']);
+	update_cookie_domain($options, $remote_db_info);
+	blackhole_m1_tables($options, $remote_db_info);
+	clear_cache_m1($options['web_root']);
+	echo "Migration complete, in theory: ".$options['base_url'];
 }
