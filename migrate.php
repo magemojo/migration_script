@@ -38,9 +38,9 @@ function return_redis_config() {
 				'default' => [
 					'backend' => 'Cm_Cache_Backend_Redis',
 					'backend_options' => [
-						'server' => 'redis',
+						'server' => 'redis-config-cache',
 						'database' => '0',
-						'port' => '6379'
+						'port' => '6381'
 					],
 				],
 				'page_cache' => [
@@ -48,7 +48,7 @@ function return_redis_config() {
 					'backend_options' => [
 						'server' => 'redis',
 						'port' => '6379',
-						'database' => '1',
+						'database' => '0',
 						'compress_data' => '0',
 					],
 				],
@@ -143,12 +143,12 @@ function update_local_xml_m1($options,$local_xml_path) {
 	$xml->global->session_save='';
 	$xml->global->session_save->addCData("db");
 	$xml->global->session_save_path='';
-	$xml->global->redis_session->host='redis';
-	$xml->global->redis_session->port='6379';
+	$xml->global->redis_session->host='redis-session';
+	$xml->global->redis_session->port='6380';
 	$xml->global->redis_session->password='';
 	$xml->global->redis_session->timeout='2.5';
 	$xml->global->redis_session->persistent='';
-	$xml->global->redis_session->db='1';
+	$xml->global->redis_session->db='0';
 	$xml->global->redis_session->compression_threshold='2048';
 	$xml->global->redis_session->compression_lib='gzip';
 	$xml->global->redis_session->log_level='1';
@@ -164,13 +164,13 @@ function update_local_xml_m1($options,$local_xml_path) {
 
 	//redis cache
 	$xml->global->cache->backend_options->server='';
-	$xml->global->cache->backend_options->server->addCData("redis");
+	$xml->global->cache->backend_options->server->addCData("redis-config-cache");
 	$xml->global->cache->backend_options->port='';
-	$xml->global->cache->backend_options->port->addCData("6379");
+	$xml->global->cache->backend_options->port->addCData("6381");
 	$xml->global->cache->backend_options->persistent='';
 	$xml->global->cache->backend_options->persistent->addCData("");
 	$xml->global->cache->backend_options->database='';
-	$xml->global->cache->backend_options->database->addCData("2");
+	$xml->global->cache->backend_options->database->addCData("0");
 	$xml->global->cache->backend_options->password='';
 	$xml->global->cache->backend_options->password->addCData("");
 	$xml->global->cache->backend_options->connect_retries='';
@@ -201,8 +201,12 @@ function set_redis_m2($env_data) {
 	//if cache and page_cache already set, then set server host to redis
 	if ( array_key_exists('cache', $env_data) ) {
 		print_r("Redis is cache already, set updating server name".PHP_EOL);
-		$env_data['cache']['frontend']['default']['backend_options']['server'] = 'redis';
+		$env_data['cache']['frontend']['default']['backend_options']['server'] = 'redis-config-cache';
+		$env_data['cache']['frontend']['default']['backend_options']['database'] = '0';
+		$env_data['cache']['frontend']['default']['backend_options']['port'] = '6381';
 		$env_data['cache']['page_cache']['backend_options']['server'] = 'redis';
+		$env_data['cache']['page_cache']['backend_options']['database'] = '0';
+		$env_data['cache']['page_cache']['backend_options']['port'] = '6379';
 	} else {
 		print_r("Redis not set, merging env.php array with Redis configuration".PHP_EOL);
 		$env_data=array_merge($env_data,return_redis_config());
@@ -214,26 +218,26 @@ function set_redis_session_m2($env_data){
 	if ( array_key_exists('session', $env_data) ) {
 		print_r("Setting redis ...".PHP_EOL);
 		$env_data['session']['save'] = 'redis';
-		$env_data['session']['redis'] = array (
-		'host' => 'redis',
-		'port' => '6379',
-		'password' => '',
-		'timeout' => '2.5',
-		'persistent_identifier' => '',
-		'database' => '2',
-		'compression_threshold' => '2048',
-		'compression_library' => 'gzip',
-		'log_level' => '1',
-		'max_concurrency' => '6',
-		'break_after_frontend' => '5',
-		'break_after_adminhtml' => '30',
-		'first_lifetime' => '600',
-		'bot_first_lifetime' => '60',
-		'bot_lifetime' => '7200',
-		'disable_locking' => '0',
-		'min_lifetime' => '60',
-		'max_lifetime' => '2592000'
-	);
+		$env_data['session']['redis'] = [
+			'host' => 'redis-session',
+			'port' => '6380',
+			'password' => '',
+			'timeout' => '2.5',
+			'persistent_identifier' => '',
+			'database' => '0',
+			'compression_threshold' => '2048',
+			'compression_library' => 'gzip',
+			'log_level' => '1',
+			'max_concurrency' => '6',
+			'break_after_frontend' => '5',
+			'break_after_adminhtml' => '30',
+			'first_lifetime' => '600',
+			'bot_first_lifetime' => '60',
+			'bot_lifetime' => '7200',
+			'disable_locking' => '0',
+			'min_lifetime' => '60',
+			'max_lifetime' => '2592000'
+		];
 	} else {
 		print_r("no sessions data set, check env.php, could be invalid! Exiting....");
 		exit(1);
