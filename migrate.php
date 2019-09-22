@@ -387,7 +387,6 @@ function deploy_m2($options) {
 	run_command("php ".$options['web_root']."bin/magento deploy:mode:set production");
 	run_command("php ".$options['web_root']."bin/magento maintenance:disable");
 	run_command("php ".$options['web_root']."bin/magento cache:clean");
-	run_command("php ".$options['web_root']."bin/magento setup:config:set --http-cache-hosts=varnish");
 }
 
 function reindex_m1($web_root) {
@@ -395,16 +394,20 @@ function reindex_m1($web_root) {
 }
 
 function clear_cache_m1(){
-	echo "Flushing magento 1 caches...";
+	echo "Flushing Magento 1 caches...".PHP_EOL;
 	run_command("rm -rf ".$web_root."var/cache");
-	run_command("redis-cli -h redis flushall");
+}
+
+function clear_host_caches(){
+	echo "Flushing host caches...".PHP_EOL;
+	run_command("/usr/share/stratus/cli cache.all.clear");
 }
 
 //MAIN LOOP
 drop_database_tables($globals['mysql_host'],$options['db'],$options['db_user'],$options['db_pass']);
 rsync($options);
 
-if ($options['magento']=="m2") {
+if ($options['magento'] == "m2") {
 	$remote_db_info=get_remote_db_info_m2($options['web_root']."app/etc/env.php");
 	//dump database from remote host
 	dump_remote_db($options, $remote_db_info, $globals);
@@ -434,10 +437,11 @@ if ($options['magento']=="m2") {
 	update_base_urls($options,$remote_db_info);
 	update_cookie_domain($options,$remote_db_info);
 	deploy_m2($options);
+	clear_host_caches();
 }
 
 
-if ($options['magento']=="m1") {
+if ($options['magento'] == "m1") {
 	$remote_db_info = get_remote_db_info_m1($options['web_root']."app/etc/local.xml");
 
 	//dump database from remote host
@@ -454,5 +458,6 @@ if ($options['magento']=="m1") {
 	update_cookie_domain($options, $remote_db_info);
 	blackhole_m1_tables($options, $remote_db_info);
 	clear_cache_m1($options['web_root']);
+	clear_host_caches();
 	echo "Migration complete, in theory: ".$options['base_url'].PHP_EOL;
 }
