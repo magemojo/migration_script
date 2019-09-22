@@ -391,7 +391,7 @@ function reindex_m1($web_root) {
 }
 
 function clear_cache_m1(){
-	echo "Flushing magento 1 caches..."
+	echo "Flushing magento 1 caches...";
 	run_command("rm -rf ".$web_root."var/cache");
 	run_command("redis-cli -h redis flushall");
 }
