@@ -450,5 +450,5 @@ if ($options['magento']=="m1") {
 	update_cookie_domain($options, $remote_db_info);
 	blackhole_m1_tables($options, $remote_db_info);
 	clear_cache_m1($options['web_root']);
-	echo "Migration complete, in theory: ".$options['base_url'];
+	echo "Migration complete, in theory: ".$options['base_url'].PHP_EOL;
 }
