@@ -7,7 +7,7 @@ $globals = [
 
 //set up PHP ARG Options
 $shortopts='';
-$longopts  = [
+$longopts = [
 	"db:",
 	"db_pass:",
 	"db_user:",
@@ -95,7 +95,7 @@ function get_remote_db_info_m1($local_xml_path) {
 	$db_host=$xml->global->resources->default_setup->connection->host;
 	$table_prefix=$xml->global->resources->db->table_prefix;
 
-	$remote_db_info  = array(
+	$remote_db_info = array(
 		'db'=> $db,
 		'db_user'=> $db_user,
 		'db_pass' => $db_pass,
@@ -127,7 +127,7 @@ function update_local_xml_m1($options,$local_xml_path) {
 	$new_xml=file_get_contents($local_xml_path);
 	$xml=new SimpleXMLExtended($new_xml);
 
-	echo "Configurating local.xml with DB info, redis, and memcache...";
+	echo "Configurating local.xml with DB info, redis, and memcache...".PHP_EOL;
 
 	//database createCDataSection
 	$db_user=$xml->global->resources->default_setup->connection->dbname='';
@@ -306,8 +306,8 @@ function drop_database_tables($db_host, $db_name, $db_user, $db_pass) {
 }
 
 function import_database($options, $globals) {
-	$command='pv '.$globals['mig_dump_file'].' | mysql -h mysql '.$globals['db_host'] .' -u '.$options['db_user'].' -p\''.$options['db_pass'].'\' '.$options['db'];
-	print_r($command);
+	$command='pv '.$globals['mig_dump_file'].' | mysql -h mysql -u '.$options['db_user'].' -p\''.$options['db_pass'].'\' '.$options['db'];
+	print_r("Importing database with: ".$command);
 	run_command($command);
 }
 
