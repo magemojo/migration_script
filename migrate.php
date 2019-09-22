@@ -1,9 +1,9 @@
 <?php
 //GLOBALS
-$globals = array(
+$globals = [
 	"mysql_host" => "mysql",
-	"prod_dump" => "/srv/prod_dump.sql"
-);
+	"mig_dump_file" => dirname(__FILE__)."/mig_dump.sql"
+];
 
 //set up PHP ARG Options
 $shortopts='';
@@ -285,10 +285,7 @@ function rsync($options) {
 }
 
 function dump_remote_db($options,$remote_db_info) {
-	//db_info assumed to be array extracted from remote host
-	//ssh $PROD_SSH_USER@$PROD_SSH_HOST "mysqldump --quick -u$PROD_USER -p$PROD_PASS $PROD_DATABASE" > prod_dump.sql
-	//form $command
-	$command="ssh -p " . $options['ssh_port'] . ' ' . $options['ssh_user'] . '@' . $options['ssh_url'] . ' "mysqldump --verbose -h ' . $remote_db_info['db_host'] .  ' --quick -u' . $remote_db_info['db_user'] . ' -p\'' . str_replace("$", "\\$", $remote_db_info['db_pass']) . '\' ' . $remote_db_info['db'] . '" > /srv/prod_dump.sql';
+	$command="ssh -p " . $options['ssh_port'] . ' ' . $options['ssh_user'] . '@' . $options['ssh_url'] . ' "mysqldump --verbose -h ' . $remote_db_info['db_host'] .  ' --quick -u' . $remote_db_info['db_user'] . ' -p\'' . str_replace("$", "\\$", $remote_db_info['db_pass']) . '\' ' . $remote_db_info['db'] . '" > '.$globals["mig_dump_file"];
 	print_r("Copying with " . PHP_EOL . $command . " use this password: ");
 	print_r($options['ssh_pass']);
 	run_command($command);
@@ -311,7 +308,7 @@ function drop_database_tables($db_host,$db_name,$db_user,$db_pass) {
 }
 
 function import_database($options,$globals) {
-	$command='pv ' . $globals['prod_dump'] . '| mysql -h mysql ' . $globals['db_host']  . ' -u ' . $options['db_user'] . ' -p\'' . $options['db_pass'] . '\' ' . $options['db'];
+	$command='pv ' . $globals['mig_dump_file'] . '| mysql -h mysql ' . $globals['db_host']  . ' -u ' . $options['db_user'] . ' -p\'' . $options['db_pass'] . '\' ' . $options['db'];
 	print_r($command);
 	run_command($command);
 }
@@ -428,7 +425,7 @@ if ($options['magento']=="m2") {
 		exit(1);
 	}
 	//remove definers
-	run_command("sed -i 's/DEFINER=[^*]*\*/\*/g' /srv/prod_dump.sql");
+	run_command("sed -i 's/DEFINER=[^*]*\*/\*/g' ".$globals["mig_dump_file"]);
 	//files copy , database moved, lets import something
 	import_database($options,$globals);
 
@@ -444,7 +441,7 @@ if ($options['magento']=="m1") {
 	dump_remote_db($options,$remote_db_info);
 	update_local_xml_m1($options,$options['web_root'] . "app/etc/local.xml");
 	//remove definers
-	run_command("sed -i 's/DEFINER=[^*]*\*/\*/g' /srv/prod_dump.sql");
+	run_command("sed -i 's/DEFINER=[^*]*\*/\*/g' ".$globals["mig_dump_file"]);
 	import_database($options,$globals);
 	update_base_urls($options,$remote_db_info);
 	reindex_m1($options['web_root']); //needs made
