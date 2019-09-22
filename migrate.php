@@ -7,7 +7,7 @@ $globals = [
 
 //set up PHP ARG Options
 $shortopts='';
-$longopts  = array(
+$longopts  = [
 	"db:",
 	"db_pass:",
 	"db_user:",
@@ -18,9 +18,10 @@ $longopts  = array(
 	"web_root:",
 	"base_url:",
 	"magento:"
-);
-$options = getopt($shortopts,$longopts);
+];
+$options = getopt($shortopts, $longopts);
 print_r($options);
+echo PHP_EOL;
 
 class SimpleXMLExtended extends SimpleXMLElement {
 	public function addCData($cData_text) {
@@ -60,7 +61,7 @@ function load_env_m2($env_path){
 	try {
 		$env_data = include $env_path;
 		} catch (\Exception $e) {
-		throw new \Exception("Could not open env.php" . $e);
+		throw new \Exception("Could not open env.php".$e);
 		exit(1);
 	}
 	return $env_data;
@@ -70,7 +71,7 @@ function get_remote_db_info_m2($env_path){
 	try {
 		$env_data = include $env_path;
 	} catch (\Exception $e) {
-		throw new \Exception("Could not open env.php" . $e);
+		throw new \Exception("Could not open env.php".$e);
 		exit(1);
 	}
 	$remote_db_info	 = array(
@@ -211,7 +212,7 @@ function set_redis_m2($env_data) {
 
 function set_redis_session_m2($env_data){
 	if ( array_key_exists('session', $env_data) ) {
-		print_r("Setting redis ..." . PHP_EOL);
+		print_r("Setting redis ...".PHP_EOL);
 		$env_data['session']['save'] = 'redis';
 		$env_data['session']['redis'] = array (
 		'host' => 'redis',
@@ -243,7 +244,7 @@ function set_redis_session_m2($env_data){
 function set_memcache_m2($env_data) {
 	//basically clone of redis method
 	if ( array_key_exists('session', $env_data) ) {
-		print_r("Setting memcache sessions..." . PHP_EOL);
+		print_r("Setting memcache sessions...".PHP_EOL);
 		$env_data['session']['save'] = 'memcache';
 		$env_data['session']['save_path'] = 'tcp://memcache:11211';
 	} else {
@@ -269,46 +270,43 @@ function run_command($command) {
 
 function rsync($options) {
 	//construct command for readability
-	$command='rsync -crLtxmzhP --delete -e "ssh -p ' . $options['ssh_port'] . '" ' . $options['ssh_user'] . '@' . $options['ssh_url'] . ":" . $options['ssh_web_root'] . " " . $options['web_root'] . " --max-size=100M";
-	print_r("Copying with " . PHP_EOL . $command . " use this password: ");
-	print_r($ssh_pass);
+	$command='rsync -crLtxmzhP --delete -e "ssh -p '.$options['ssh_port'].'" '.$options['ssh_user'].'@'.$options['ssh_url'].":".$options['ssh_web_root']." ".$options['web_root']." --max-size=100M";
+	print_r("Starting rsync with: ".$command);
 	while (@ ob_end_flush()); // end all output buffers if any
 
 	$proc = popen($command, 'r');
 	echo PHP_EOL;
-	while (!feof($proc))
-	{
+	while (!feof($proc)) {
 		echo fread($proc, 4096);
 		@ flush();
 	}
 	echo PHP_EOL;
 }
 
-function dump_remote_db($options,$remote_db_info) {
-	$command="ssh -p " . $options['ssh_port'] . ' ' . $options['ssh_user'] . '@' . $options['ssh_url'] . ' "mysqldump --verbose -h ' . $remote_db_info['db_host'] .  ' --quick -u' . $remote_db_info['db_user'] . ' -p\'' . str_replace("$", "\\$", $remote_db_info['db_pass']) . '\' ' . $remote_db_info['db'] . '" > '.$globals["mig_dump_file"];
-	print_r("Copying with " . PHP_EOL . $command . " use this password: ");
-	print_r($options['ssh_pass']);
+function dump_remote_db($options, $remote_db_info, $globals) {
+	$command = "ssh -p ".$options['ssh_port']." ".$options['ssh_user']."@".$options['ssh_url']." 'mysqldump --verbose -h ".$remote_db_info['db_host']." --quick -u ".$remote_db_info['db_user']." -p'".str_replace("$", "\\$", $remote_db_info['db_pass'])."' ".$remote_db_info['db']."' > ".$globals["mig_dump_file"];
+	print_r("Dumping remote database with: ".$command);
 	run_command($command);
 }
 
-function drop_database_tables($db_host,$db_name,$db_user,$db_pass) {
+function drop_database_tables($db_host, $db_name, $db_user, $db_pass) {
 	//open db connection, list tables, nuke from orbit
 	//identical to the bash script we use
-	print_r("Dropping database tables...");
+	print_r("Dropping Stratus database tables...".PHP_EOL);
 	$mysqli = new mysqli($db_host, $db_user, $db_pass, $db_name);
 	$mysqli->select_db($db_name);
-	$mysqli->query('SET foreign_key_checks = 0');
-	if ($result = $mysqli->query("SHOW TABLES")) {
+	$mysqli->query('SET foreign_key_checks = 0;');
+	if ($result = $mysqli->query("SHOW TABLES;")) {
 		while($row = $result->fetch_array(MYSQLI_NUM)) {
-			$mysqli->query('DROP TABLE IF EXISTS '.$row[0]);
+			$mysqli->query('DROP TABLE IF EXISTS '.$row[0].';');
 		}
 	}
-	$mysqli->query('SET foreign_key_checks = 1');
+	$mysqli->query('SET foreign_key_checks = 1;');
 	$mysqli->close();
 }
 
-function import_database($options,$globals) {
-	$command='pv ' . $globals['mig_dump_file'] . '| mysql -h mysql ' . $globals['db_host']  . ' -u ' . $options['db_user'] . ' -p\'' . $options['db_pass'] . '\' ' . $options['db'];
+function import_database($options, $globals) {
+	$command='pv '.$globals['mig_dump_file'].' | mysql -h mysql '.$globals['db_host'] .' -u '.$options['db_user'].' -p\''.$options['db_pass'].'\' '.$options['db'];
 	print_r($command);
 	run_command($command);
 }
@@ -318,14 +316,14 @@ function update_base_urls($options,$remote_db_info) {
 	$conn = new mysqli('mysql', $options['db_user'], $options['db_pass'], $options['db']);
 	// Check connection
 	if ($conn->connect_error) {
-		die("Connection failed: " . $conn->connect_error);
+		die("Connection failed: ".$conn->connect_error);
 	}
 
-	$sql = 'update '. $remote_db_info['table_prefix'] . 'core_config_data set value="' . $options['base_url'] . '" where path like "web/%secure/base_url" and scope="default"';
+	$sql = 'update '. $remote_db_info['table_prefix'].'core_config_data set value="'.$options['base_url'].'" where path like "web/%secure/base_url" and scope="default"';
 	if ($conn->query($sql) === TRUE) {
 		echo "Record updated successfully".PHP_EOL;
 	} else {
-		echo "Error updating record: " . $conn->error;
+		echo "Error updating record: ".$conn->error;
 	}
 
 	$conn->close();
@@ -337,37 +335,41 @@ function update_cookie_domain($options,$remote_db_info) {
 	$conn = new mysqli('mysql', $options['db_user'], $options['db_pass'], $options['db']);
 	// Check connection
 	if ($conn->connect_error) {
-		die("Connection failed: " . $conn->connect_error);
+		die("Connection failed: ".$conn->connect_error);
 	}
 
-	$sql = 'update '. $remote_db_info['table_prefix'] . 'core_config_data set value=".mojostratus.io" where path like "%cookie_domain%" and scope_id=0';
+	$sql = 'update '. $remote_db_info['table_prefix'].'core_config_data set value=".mojostratus.io" where path like "%cookie_domain%" and scope_id=0';
 	if ($conn->query($sql) === TRUE) {
 		echo "Record updated successfully".PHP_EOL;
 	} else {
-		echo "Error updating record: " . $conn->error;
+		echo "Error updating record: ".$conn->error;
 	}
 
 	$conn->close();
 }
 
-#update default cookie_domain
 function blackhole_m1_tables($options,$remote_db_info) {
-	print_r(PHP_EOL . "Blackholing a few m1 tables..." . PHP_EOL);
+	print_r(PHP_EOL."Blackholing a few junk m1 tables...".PHP_EOL);
 	$conn = new mysqli('mysql', $options['db_user'], $options['db_pass'], $options['db']);
-	// Check connection
+
 	if ($conn->connect_error) {
-		die("Connection failed: " . $conn->connect_error);
+		die("Connection failed: ".$conn->connect_error);
 	}
 
-	$target_tables = ['log_url', 'log_url_info', 'log_visitor', 'log_visitor_info'];
+	$target_tables = ['log_url', 'log_url_info', 'log_visitor', 'log_visitor_info', 'report_event'];
 	foreach($target_tables as $table){
-		$query = "DELETE FROM ".$remote_db_info['table_prefix'].$table.";";
-		$conn->query($query);
 		$query = "ALTER TABLE ".$remote_db_info['table_prefix'].$table." ENGINE=BLACKHOLE;";
-		if ($conn->query($query) === TRUE) {
-			print_r("Successfully blackhole'd table: ".$remote_db_info['table_prefix'].$table . PHP_EOL);
+		if ($conn->query($query) == true) {
+			print_r("Successfully blackholed table: ".$remote_db_info['table_prefix'].$table.PHP_EOL);
 		} else {
-			print_r("Failed to blackhole table '".$remote_db_info['table_prefix'].$table."' - Error: ".$conn->error . PHP_EOL);
+			print_r("Failed to blackhole table: '".$remote_db_info['table_prefix'].$table."' - Error: ".$conn->error.PHP_EOL);
+		}
+
+		$query = "DELETE FROM ".$remote_db_info['table_prefix'].$table.";";
+		if ($conn->query($query) == true) {
+			print_r("Successfully truncated table: ".$remote_db_info['table_prefix'].$table.PHP_EOL);
+		} else {
+			print_r("Failed to truncate table: '".$remote_db_info['table_prefix'].$table."' - Error: ".$conn->error.PHP_EOL);
 		}
 	}
 
@@ -376,38 +378,33 @@ function blackhole_m1_tables($options,$remote_db_info) {
 }
 
 function deploy_m2($options) {
-	echo "php " . $options['web_root'] . "bin/magento maintenance:enable";
-	run_command("php " . $options['web_root'] . "bin/magento maintenance:enable");
-	run_command("php " . $options['web_root'] . "bin/magento deploy:mode:set production");
-	run_command("php " . $options['web_root'] . "bin/magento maintenance:disable");
-	run_command("php " . $options['web_root'] . "bin/magento cache:clean");
-	run_command("php " . $options['web_root'] . "bin/magento setup:config:set --http-cache-hosts=varnish");
+	echo "php ".$options['web_root']."bin/magento maintenance:enable";
+	run_command("php ".$options['web_root']."bin/magento maintenance:enable");
+	run_command("php ".$options['web_root']."bin/magento deploy:mode:set production");
+	run_command("php ".$options['web_root']."bin/magento maintenance:disable");
+	run_command("php ".$options['web_root']."bin/magento cache:clean");
+	run_command("php ".$options['web_root']."bin/magento setup:config:set --http-cache-hosts=varnish");
 }
 
 function reindex_m1($web_root) {
-	run_command("php " . $web_root . "shell/indexer.php --reindexall");
+	run_command("php ".$web_root."shell/indexer.php --reindexall");
 }
 
 function clear_cache_m1(){
-	run_command("rm -rf " . $web_root . "var/cache");
+	run_command("rm -rf ".$web_root."var/cache");
 	run_command("redis-cli -h redis flushall");
 }
 
 //MAIN LOOP
-//drop database
 drop_database_tables($globals['mysql_host'],$options['db'],$options['db_user'],$options['db_pass']);
-//make sure target web root is clear first
-//now sync files over
-echo "Starting rsync...";
 rsync($options);
-//get old db info for remote var_dump
 
 if ($options['magento']=="m2") {
-	$remote_db_info=get_remote_db_info_m2($options['web_root'] . "app/etc/env.php");
+	$remote_db_info=get_remote_db_info_m2($options['web_root']."app/etc/env.php");
 	//dump database from remote host
-	dump_remote_db($options,$remote_db_info);
+	dump_remote_db($options, $remote_db_info, $globals);
 	//load env.php
-	$env_data = load_env_m2($options['web_root'] . "app/etc/env.php");
+	$env_data = load_env_m2($options['web_root']."app/etc/env.php");
 	//set redis configuration
 	$env_data = set_redis_m2($env_data);
 	//set memcache sessions for Stratus
@@ -417,11 +414,11 @@ if ($options['magento']=="m2") {
 	//write to file
 	$output = var_export($env_data, true);
 	try {
-		$fp = fopen($options['web_root'] . "app/etc/env.php", 'w');
-		fwrite($fp, "<?php\n return " . $output . ";\n");
+		$fp = fopen($options['web_root']."app/etc/env.php", 'w');
+		fwrite($fp, "<?php\n return ".$output.";\n");
 		fclose($fp);
 	} catch (\Exception $e) {
-		throw new \Exception("Could not write file" . $e);
+		throw new \Exception("Could not write file".$e);
 		exit(1);
 	}
 	//remove definers
@@ -436,10 +433,10 @@ if ($options['magento']=="m2") {
 
 
 if ($options['magento']=="m1") {
-	$remote_db_info=get_remote_db_info_m1($options['web_root'] . "app/etc/local.xml");
+	$remote_db_info = get_remote_db_info_m1($options['web_root']."app/etc/local.xml");
 	//dump database from remote host
-	dump_remote_db($options,$remote_db_info);
-	update_local_xml_m1($options,$options['web_root'] . "app/etc/local.xml");
+	dump_remote_db($options, $remote_db_info, $globals);
+	update_local_xml_m1($options,$options['web_root']."app/etc/local.xml");
 	//remove definers
 	run_command("sed -i 's/DEFINER=[^*]*\*/\*/g' ".$globals["mig_dump_file"]);
 	import_database($options,$globals);
