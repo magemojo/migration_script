@@ -1,0 +1,1 @@
+php migrate.php --ssh_user=jwisecarver --ssh_port=22 --ssh_url="123.123.123.123" --ssh_web_root=/srv/public_html/ --db_user=user_abcdefghijk --db=db_abcdefghijk --db_pass=PASSW0RD --web_root=/srv/public_html/ --base_url=https://uuid.mojostratus.io/ --magento=m1
