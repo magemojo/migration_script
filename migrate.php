@@ -343,7 +343,7 @@ function update_cookie_domain($options,$remote_db_info) {
 	}
 
 	// Configure the cookie domain based on the given base_url option.
-	$cookie_domain = ".".parse_url($options["base_url"])["host"];
+	$cookie_domain = parse_url($options["base_url"])["host"];
 
 	$sql = 'UPDATE '.$remote_db_info['table_prefix'].'core_config_data SET value="'.$cookie_domain.'" WHERE path LIKE "%cookie_domain%" AND scope_id = 0;';
 	if ($conn->query($sql) === TRUE) {
@@ -438,7 +438,7 @@ if ($options['magento'] == "m2") {
 	import_database($options,$globals);
 
 	update_base_urls($options,$remote_db_info);
-	update_cookie_domain($options,$remote_db_info);
+	update_cookie_domain($options, $remote_db_info);
 	deploy_m2($options);
 	clear_host_caches();
 }
