@@ -323,7 +323,7 @@ function update_base_urls($options,$remote_db_info) {
 		die("Connection failed: ".$conn->connect_error);
 	}
 
-	$sql = 'update '. $remote_db_info['table_prefix'].'core_config_data set value="'.$options['base_url'].'" where path like "web/%secure/base_url" and scope="default"';
+	$sql = 'UPDATE '. $remote_db_info['table_prefix'].'core_config_data SET value="'.$options['base_url'].'" WHERE path LIKE "web/%secure/base_url" AND scope = "default";';
 	if ($conn->query($sql) === TRUE) {
 		echo "Record updated successfully".PHP_EOL;
 	} else {
@@ -342,7 +342,10 @@ function update_cookie_domain($options,$remote_db_info) {
 		die("Connection failed: ".$conn->connect_error);
 	}
 
-	$sql = 'update '. $remote_db_info['table_prefix'].'core_config_data set value=".mojostratus.io" where path like "%cookie_domain%" and scope_id=0';
+	// Configure the cookie domain based on the given base_url option.
+	$cookie_domain = ".".parse_url($options["base_url"])["host"];
+
+	$sql = 'UPDATE '.$remote_db_info['table_prefix'].'core_config_data SET value="'.$cookie_domain.'" WHERE path LIKE "%cookie_domain%" AND scope_id = 0;';
 	if ($conn->query($sql) === TRUE) {
 		echo "Record updated successfully".PHP_EOL;
 	} else {
