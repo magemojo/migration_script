@@ -370,7 +370,7 @@ function blackhole_m1_tables($options,$remote_db_info) {
 			print_r("Failed to blackhole table: '".$remote_db_info['table_prefix'].$table."' - Error: ".$conn->error.PHP_EOL);
 		}
 
-		$query = "DELETE FROM ".$remote_db_info['table_prefix'].$table.";";
+		$query = "TRUNCATE TABLE ".$remote_db_info['table_prefix'].$table.";";
 		if ($conn->query($query) == true) {
 			print_r("Successfully truncated table: ".$remote_db_info['table_prefix'].$table.PHP_EOL);
 		} else {
