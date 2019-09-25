@@ -49,7 +49,7 @@ function return_redis_config() {
 						'server' => 'redis',
 						'port' => '6379',
 						'database' => '0',
-						'compress_data' => '0',
+						'compress_data' => '1',
 					],
 				],
 			],
@@ -152,21 +152,22 @@ function update_local_xml_m1($options,$local_xml_path) {
 	$xml->global->redis_session->compression_threshold='2048';
 	$xml->global->redis_session->compression_lib='gzip';
 	$xml->global->redis_session->log_level='1';
-	$xml->global->redis_session->max_concurrency='6';
-	$xml->global->redis_session->break_after_frontend='30';
+	$xml->global->redis_session->max_concurrency='20';
+	$xml->global->redis_session->break_after_frontend='5';
 	$xml->global->redis_session->fail_after='10';
 	$xml->global->redis_session->break_after_adminhtml='30';
 	$xml->global->redis_session->first_lifetime='600';
 	$xml->global->redis_session->bot_first_lifetime='60';
-	$xml->global->redis_session->disable_locking='0';
+	$xml->global->redis_session->bot_lifetime='7200';
+	$xml->global->redis_session->disable_locking='1';
 	$xml->global->redis_session->min_lifetime='60';
 	$xml->global->redis_session->max_lifetime='2592000';
 
 	//redis cache
 	$xml->global->cache->backend_options->server='';
-	$xml->global->cache->backend_options->server->addCData("redis-config-cache");
+	$xml->global->cache->backend_options->server->addCData("redis");
 	$xml->global->cache->backend_options->port='';
-	$xml->global->cache->backend_options->port->addCData("6381");
+	$xml->global->cache->backend_options->port->addCData("6379");
 	$xml->global->cache->backend_options->persistent='';
 	$xml->global->cache->backend_options->persistent->addCData("");
 	$xml->global->cache->backend_options->database='';
@@ -178,7 +179,7 @@ function update_local_xml_m1($options,$local_xml_path) {
 	$xml->global->cache->backend_options->read_timeout='';
 	$xml->global->cache->backend_options->read_timeout->addCData("10");
 	$xml->global->cache->backend_options->automatic_cleaning_factor='';
-	$xml->global->cache->backend_options->automatic_cleaning_factor->addCData('');
+	$xml->global->cache->backend_options->automatic_cleaning_factor->addCData('0');
 	$xml->global->cache->backend_options->compress_data='';
 	$xml->global->cache->backend_options->compress_data->addCData('1');
 	$xml->global->cache->backend_options->compress_tags='';
@@ -214,8 +215,8 @@ function set_redis_m2($env_data) {
 	return $env_data;
 }
 
-function set_redis_session_m2($env_data){
-	if ( array_key_exists('session', $env_data) ) {
+function set_redis_session_m2($env_data) {
+	if (array_key_exists('session', $env_data)) {
 		print_r("Setting redis ...".PHP_EOL);
 		$env_data['session']['save'] = 'redis';
 		$env_data['session']['redis'] = [
@@ -228,13 +229,13 @@ function set_redis_session_m2($env_data){
 			'compression_threshold' => '2048',
 			'compression_library' => 'gzip',
 			'log_level' => '1',
-			'max_concurrency' => '6',
+			'max_concurrency' => '20',
 			'break_after_frontend' => '5',
 			'break_after_adminhtml' => '30',
 			'first_lifetime' => '600',
 			'bot_first_lifetime' => '60',
 			'bot_lifetime' => '7200',
-			'disable_locking' => '0',
+			'disable_locking' => '1',
 			'min_lifetime' => '60',
 			'max_lifetime' => '2592000'
 		];
