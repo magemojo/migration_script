@@ -259,13 +259,11 @@ function set_memcache_m2($env_data) {
 }
 
 function run_command($command) {
-	//runs generic shell command and streams
-	while (@ ob_end_flush()); // end all output buffers if any
+	while (@ ob_end_flush());
 
 	$proc = popen($command,'r');
 	echo PHP_EOL;
-	while (!feof($proc))
-	{
+	while (!feof($proc)) {
 		echo fread($proc, 4096);
 		@ flush();
 	}
