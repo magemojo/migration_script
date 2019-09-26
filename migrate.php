@@ -362,7 +362,7 @@ function blackhole_m1_tables($options,$remote_db_info) {
 }
 
 function deploy_m2($options) {
-	echo "Deploying M2...".PHP_EOL
+	echo "Deploying M2...".PHP_EOL;
 	run_command("php ".$options['web_root']."bin/magento maintenance:enable");
 	run_command("php ".$options['web_root']."bin/magento deploy:mode:set production");
 	run_command("php ".$options['web_root']."bin/magento maintenance:disable");
