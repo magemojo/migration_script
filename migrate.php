@@ -124,12 +124,12 @@ function set_db_creds_m2($env_data,$options) {
 
 
 function update_local_xml_m1($options,$local_xml_path) {
-	$new_xml=file_get_contents($local_xml_path);
-	$xml=new SimpleXMLExtended($new_xml);
+	$new_xml = file_get_contents($local_xml_path);
+	$xml = new SimpleXMLExtended($new_xml);
 
 	echo "Configurating local.xml with DB info, redis, and memcache...".PHP_EOL;
 
-	//database createCDataSection
+	// Database credentials.
 	$db_user=$xml->global->resources->default_setup->connection->dbname='';
 	$db_user=$xml->global->resources->default_setup->connection->username='';
 	$db_pass=$xml->global->resources->default_setup->connection->password='';
@@ -139,7 +139,7 @@ function update_local_xml_m1($options,$local_xml_path) {
 	$db_pass=$xml->global->resources->default_setup->connection->password->addCData($options['db_pass']);
 	$db_host=$xml->global->resources->default_setup->connection->host->addCData('mysql');
 
-	//Redis and redis sessions
+	// Redis sessions.
 	$xml->global->session_save='';
 	$xml->global->session_save->addCData("db");
 	$xml->global->session_save_path='';
@@ -163,7 +163,7 @@ function update_local_xml_m1($options,$local_xml_path) {
 	$xml->global->redis_session->min_lifetime='60';
 	$xml->global->redis_session->max_lifetime='2592000';
 
-	//redis cache
+	// Redis cache.
 	$xml->global->cache->backend_options->server='';
 	$xml->global->cache->backend_options->server->addCData("redis");
 	$xml->global->cache->backend_options->port='';
@@ -193,14 +193,13 @@ function update_local_xml_m1($options,$local_xml_path) {
 	$xml->global->cache->backend='';
 	$xml->global->cache->backend->addCData('Cm_Cache_Backend_Redis');
 
-
 	$xml->asXml($local_xml_path);
 }
 
 
 function set_redis_m2($env_data) {
-	//if cache and page_cache already set, then set server host to redis
-	if ( array_key_exists('cache', $env_data) ) {
+	// If cache is set, use new redis host.
+	if (array_key_exists('cache', $env_data)) {
 		print_r("Redis is cache already, set updating server name".PHP_EOL);
 		$env_data['cache']['frontend']['default']['backend_options']['server'] = 'redis-config-cache';
 		$env_data['cache']['frontend']['default']['backend_options']['database'] = '0';
@@ -210,7 +209,7 @@ function set_redis_m2($env_data) {
 		$env_data['cache']['page_cache']['backend_options']['port'] = '6379';
 	} else {
 		print_r("Redis not set, merging env.php array with Redis configuration".PHP_EOL);
-		$env_data=array_merge($env_data,return_redis_config());
+		$env_data = array_merge($env_data, return_redis_config());
 	}
 	return $env_data;
 }
@@ -246,19 +245,6 @@ function set_redis_session_m2($env_data) {
 	return $env_data;
 }
 
-function set_memcache_m2($env_data) {
-	//basically clone of redis method
-	if ( array_key_exists('session', $env_data) ) {
-		print_r("Setting memcache sessions...".PHP_EOL);
-		$env_data['session']['save'] = 'memcache';
-		$env_data['session']['save_path'] = 'tcp://memcache:11211';
-	} else {
-		print_r("no sessions data set, check env.php, could be invalid! Exiting....");
-		exit(1);
-	}
-	return $env_data;
-}
-
 function run_command($command) {
 	while (@ ob_end_flush());
 
@@ -272,10 +258,10 @@ function run_command($command) {
 }
 
 function rsync($options) {
-	//construct command for readability
-	$command='rsync -crLtxmzhP --delete -e "ssh -p '.$options['ssh_port'].'" '.$options['ssh_user'].'@'.$options['ssh_url'].":".$options['ssh_web_root']." ".$options['web_root']." --max-size=100M";
+	// Sync files from remote to local.
+	$command = 'rsync -crLtxmzhP --delete -e "ssh -p '.$options['ssh_port'].'" '.$options['ssh_user'].'@'.$options['ssh_url'].":".$options['ssh_web_root']." ".$options['web_root']." --max-size=100M";
 	print_r("Starting rsync with: ".$command);
-	while (@ ob_end_flush()); // end all output buffers if any
+	while (@ ob_end_flush());
 
 	$proc = popen($command, 'r');
 	echo PHP_EOL;
