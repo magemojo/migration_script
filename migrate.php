@@ -259,7 +259,7 @@ function run_command($command) {
 
 function rsync($options) {
 	// Sync files from remote to local.
-	$command = 'rsync -crLtxmzhP --delete -e "ssh -p '.$options['ssh_port'].'" '.$options['ssh_user'].'@'.$options['ssh_url'].":".$options['ssh_web_root']." ".$options['web_root']." --max-size=100M";
+	$command = 'rsync -crLtxmzhP --delete -e "ssh -oStrictHostKeyChecking=no -p '.$options['ssh_port'].'" '.$options['ssh_user'].'@'.$options['ssh_url'].":".$options['ssh_web_root']." ".$options['web_root']." --max-size=100M";
 	print_r("Starting rsync with: ".$command);
 	while (@ ob_end_flush());
 
@@ -273,7 +273,7 @@ function rsync($options) {
 }
 
 function dump_remote_db($options, $remote_db_info, $globals) {
-	$command = "ssh -p ".$options['ssh_port']." ".$options['ssh_user']."@".$options['ssh_url']." 'mysqldump --verbose -h ".$remote_db_info['db_host']." --quick -u ".$remote_db_info['db_user']." -p'".str_replace("$", "\\$", $remote_db_info['db_pass'])."' ".$remote_db_info['db']."' > ".$globals["mig_dump_file"];
+	$command = "ssh -oStrictHostKeyChecking=no -p ".$options['ssh_port']." ".$options['ssh_user']."@".$options['ssh_url']." 'mysqldump --verbose -h ".$remote_db_info['db_host']." --quick -u ".$remote_db_info['db_user']." -p'".str_replace("$", "\\$", $remote_db_info['db_pass'])."' ".$remote_db_info['db']."' > ".$globals["mig_dump_file"];
 	print_r("Dumping remote database with: ".$command);
 	run_command($command);
 }
