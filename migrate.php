@@ -362,11 +362,10 @@ function blackhole_m1_tables($options,$remote_db_info) {
 }
 
 function deploy_m2($options) {
-	echo "php ".$options['web_root']."bin/magento maintenance:enable";
-	run_command("php ".$options['web_root']."bin/magento maintenance:enable");
-	run_command("php ".$options['web_root']."bin/magento deploy:mode:set production");
-	run_command("php ".$options['web_root']."bin/magento maintenance:disable");
-	run_command("php ".$options['web_root']."bin/magento cache:clean");
+	run_command("php ".$options['web_root']." bin/magento maintenance:enable");
+	run_command("php ".$options['web_root']." bin/magento deploy:mode:set production");
+	run_command("php ".$options['web_root']." bin/magento maintenance:disable");
+	run_command("php ".$options['web_root']." bin/magento cache:clean");
 }
 
 function reindex_m1($web_root) {
