@@ -279,18 +279,10 @@ function dump_remote_db($options, $remote_db_info, $globals) {
 }
 
 function drop_database_tables($db_host, $db_name, $db_user, $db_pass) {
-	//open db connection, list tables, nuke from orbit
-	//identical to the bash script we use
-	print_r("Dropping Stratus database tables...".PHP_EOL);
+	print_r("Dropping & re-creating Stratus database...".PHP_EOL);
 	$mysqli = new mysqli($db_host, $db_user, $db_pass, $db_name);
-	$mysqli->select_db($db_name);
-	$mysqli->query('SET foreign_key_checks = 0;');
-	if ($result = $mysqli->query("SHOW TABLES;")) {
-		while($row = $result->fetch_array(MYSQLI_NUM)) {
-			$mysqli->query('DROP TABLE IF EXISTS '.$row[0].';');
-		}
-	}
-	$mysqli->query('SET foreign_key_checks = 1;');
+	$mysqli->query("DROP SCHEMA ".$db_name.";");
+	$mysqli->query("CREATE SCHEMA ".$db_name.";");
 	$mysqli->close();
 }
 
