@@ -1,9 +1,12 @@
 # migration_script
 For migrating Magento sites via SSH to Stratus.
+
 Requires rsync and mysqldump on the remote host to work.
 
 # Notes
 You do not need to flush the local (Stratus) db or filesystem, the script should take care of it.
+
+This is a pull-based tool. Clone it to the DESTINATION server/host where everything will be copied TOO (usually the new/fresh/target instance).
 
 The variable names in init.sh that you need to edit are very self-descriptive (remote, local, etc):
 
