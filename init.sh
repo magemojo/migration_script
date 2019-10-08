@@ -1,7 +1,8 @@
 # Config Options.
 _remote_user=jwisecarver
-_remote_ssh_port=22
 _remote_ssh_url="123.123.123.123"
+_remote_ssh_port=22
+_remote_ssh_password="" # Optional, if you aren't using a SSH keypair
 _remote_web_root=/srv/public_html/
 _local_web_root=/srv/public_html/
 _base_url=https://uuid.mojostratus.io/
@@ -15,4 +16,4 @@ _local_db_name=$(cat cred.log | grep Username | awk '{print $7}' | cut -c3- | re
 _local_db_pass=$(cat cred.log | grep Username | awk '{print $14}' | cut -c3- | rev | cut -c4- | rev)
 rm cred.log
 
-php migrate.php --ssh_user=$_remote_user --ssh_port=$_remote_ssh_port --ssh_url=$_remote_ssh_url --ssh_web_root=$_remote_web_root --db_user=$_local_db_user --db=$_local_db_name --db_pass=$_local_db_pass --web_root=$_local_web_root --base_url=$_base_url --magento=$_magento_version
+php -d max_execution_time=0 migrate.php --ssh_user=$_remote_user --ssh_port=$_remote_ssh_port --ssh_url=$_remote_ssh_url --ssh_web_root=$_remote_web_root --db_user=$_local_db_user --db=$_local_db_name --db_pass=$_local_db_pass --web_root=$_local_web_root --base_url=$_base_url --magento=$_magento_version --ssh_passwd=$_remote_ssh_password

@@ -1,11 +1,9 @@
 <?php
-//GLOBALS
 $globals = [
 	"mysql_host" => "mysql",
 	"mig_dump_file" => dirname(__FILE__)."/mig_dump.sql"
 ];
 
-//set up PHP ARG Options
 $shortopts='';
 $longopts = [
 	"db:",
@@ -17,11 +15,19 @@ $longopts = [
 	"ssh_web_root:",
 	"web_root:",
 	"base_url:",
-	"magento:"
+	"magento:",
+	"ssh_passwd:",
 ];
 $options = getopt($shortopts, $longopts);
 print_r($options);
 echo PHP_EOL;
+
+if (!isset($options['ssh_passwd']) or ($options['ssh_passwd'] == "")) {
+	$options['ssh_passwd'] = false;
+	print("No SSH password option set, assuming keypair is present for all ssh operations.".PHP_EOL);
+} else {
+	print("SSH password option set, using it for all ssh operations.".PHP_EOL);
+}
 
 class SimpleXMLExtended extends SimpleXMLElement {
 	public function addCData($cData_text) {
@@ -259,7 +265,12 @@ function run_command($command) {
 
 function rsync($options) {
 	// Sync files from remote to local.
-	$command = 'rsync -crLtxmzhP --delete -e "ssh -oStrictHostKeyChecking=no -p '.$options['ssh_port'].'" '.$options['ssh_user'].'@'.$options['ssh_url'].":".$options['ssh_web_root']." ".$options['web_root']." --max-size=100M";
+	if ($options['ssh_passwd']) {
+		$command = 'sshpass -p"'.$options['ssh_passwd'].'" rsync -crLtxmzhP --delete -e "ssh -oStrictHostKeyChecking=no -p '.$options['ssh_port'].'" '.$options['ssh_user'].'@'.$options['ssh_url'].":".$options['ssh_web_root']." ".$options['web_root']." --max-size=100M";
+	} else {
+		$command = 'rsync -crLtxmzhP --delete -e "ssh -oStrictHostKeyChecking=no -p '.$options['ssh_port'].'" '.$options['ssh_user'].'@'.$options['ssh_url'].":".$options['ssh_web_root']." ".$options['web_root']." --max-size=100M";
+	}
+
 	print_r("Starting rsync with: ".$command);
 	while (@ ob_end_flush());
 
@@ -273,7 +284,11 @@ function rsync($options) {
 }
 
 function dump_remote_db($options, $remote_db_info, $globals) {
-	$command = "ssh -oStrictHostKeyChecking=no -p ".$options['ssh_port']." ".$options['ssh_user']."@".$options['ssh_url']." 'mysqldump --verbose -h ".$remote_db_info['db_host']." --quick -u ".$remote_db_info['db_user']." -p'".str_replace("$", "\\$", $remote_db_info['db_pass'])."' ".$remote_db_info['db']."' > ".$globals["mig_dump_file"];
+	if ($options['ssh_passwd']) {
+		$command = "sshpass -p'".$options['ssh_passwd']."' ssh -oStrictHostKeyChecking=no -p ".$options['ssh_port']." ".$options['ssh_user']."@".$options['ssh_url']." 'mysqldump --verbose -h ".$remote_db_info['db_host']." --quick -u ".$remote_db_info['db_user']." -p'".str_replace("$", "\\$", $remote_db_info['db_pass'])."' ".$remote_db_info['db']."' > ".$globals["mig_dump_file"];
+	} else {
+		$command = "ssh -oStrictHostKeyChecking=no -p ".$options['ssh_port']." ".$options['ssh_user']."@".$options['ssh_url']." 'mysqldump --verbose -h ".$remote_db_info['db_host']." --quick -u ".$remote_db_info['db_user']." -p'".str_replace("$", "\\$", $remote_db_info['db_pass'])."' ".$remote_db_info['db']."' > ".$globals["mig_dump_file"];
+	}
 	print_r("Dumping remote database with: ".$command);
 	run_command($command);
 }
