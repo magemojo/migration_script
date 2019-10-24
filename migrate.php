@@ -293,8 +293,8 @@ function dump_remote_db($options, $remote_db_info, $globals) {
 
 function drop_database_tables($db_host, $db_name, $db_user, $db_pass) {
 	print_r("Dropping & re-creating Stratus database...".PHP_EOL);
-	$mysqli = new mysqli($db_host, $db_user, $db_pass, $db_name);
-	$mysqli->query("DROP SCHEMA ".$db_name.";");
+	$mysqli = new mysqli($db_host, $db_user, $db_pass);
+	$mysqli->query("DROP SCHEMA IF EXISTS ".$db_name.";");
 	$mysqli->query("CREATE SCHEMA ".$db_name.";");
 	$mysqli->close();
 }
