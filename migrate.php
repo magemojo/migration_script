@@ -300,7 +300,7 @@ function drop_database_tables($db_host, $db_name, $db_user, $db_pass) {
 }
 
 function import_database($options, $globals) {
-	$command='pv '.$globals['mig_dump_file'].' | mysql -h mysql -u '.$options['db_user'].' -p\''.$options['db_pass'].'\' '.$options['db'];
+	$command='pv '.$globals['mig_dump_file'].' | mysql -f -h mysql -u '.$options['db_user'].' -p\''.$options['db_pass'].'\' '.$options['db'];
 	print_r("Importing database with: ".$command);
 	run_command($command);
 }
