@@ -283,7 +283,7 @@ function rsync($options) {
 }
 
 function dump_remote_db($options, $remote_db_info, $globals) {
-	$command = "ssh -oStrictHostKeyChecking=no -p ".$options['ssh_port']." ".$options['ssh_user']."@".$options['ssh_url']." 'mysqldump --verbose -h ".$remote_db_info['db_host']." --quick -u ".$remote_db_info['db_user']." -p'".str_replace("$", "\\$", $remote_db_info['db_pass'])."' ".$remote_db_info['db']."' > ".$globals["mig_dump_file"];
+	$command = "ssh -oStrictHostKeyChecking=no -p ".$options['ssh_port']." ".$options['ssh_user']."@".$options['ssh_url']." 'mysqldump --verbose --single-transaction --quick -h ".$remote_db_info['db_host']." -u ".$remote_db_info['db_user']." -p'".str_replace("$", "\\$", $remote_db_info['db_pass'])."' ".$remote_db_info['db']."' > ".$globals["mig_dump_file"];
 	if ($options['ssh_passwd']) {
 		$command = 'sshpass -p"'.$options['ssh_passwd'].'" '.$command;
 	}
