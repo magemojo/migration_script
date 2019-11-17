@@ -265,7 +265,7 @@ function run_command($command) {
 
 function rsync($options) {
 	// Sync files from remote to local.
-	$command = 'rsync -crLtxmzhP --delete -e "ssh -oStrictHostKeyChecking=no -p '.$options['ssh_port'].'" '.$options['ssh_user'].'@'.$options['ssh_url'].":".$options['ssh_web_root']." ".$options['web_root']." --max-size=100M";
+	$command = 'rsync -crLtxzh --info=progress2 --no-inc-recursive --delete -e "ssh -oStrictHostKeyChecking=no -p '.$options['ssh_port'].'" '.$options['ssh_user'].'@'.$options['ssh_url'].":".$options['ssh_web_root']." ".$options['web_root']." --max-size=100M";
 	if ($options['ssh_passwd']) {
 		$command = 'sshpass -p"'.$options['ssh_passwd'].'" '.$command;
 	}
