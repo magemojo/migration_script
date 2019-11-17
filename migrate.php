@@ -270,7 +270,7 @@ function rsync($options) {
 		$command = 'sshpass -p"'.$options['ssh_passwd'].'" '.$command;
 	}
 
-	print_r("Starting rsync with: ".$command);
+	print_r("Starting rsync with: ".$command.PHP_EOL."Be patient while rsync builds the file list so it can show you accurate progress.");
 	while (@ ob_end_flush());
 
 	$proc = popen($command, 'r');
