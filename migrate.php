@@ -353,7 +353,7 @@ function blackhole_m1_tables($options,$remote_db_info) {
 		die("Connection failed: ".$conn->connect_error);
 	}
 
-	$target_tables = ['log_url', 'log_url_info', 'log_visitor', 'log_visitor_info', 'report_event'];
+	$target_tables = ['log_url', 'log_url_info', 'log_visitor', 'log_visitor_info'];
 	foreach($target_tables as $table){
 		$query = "ALTER TABLE ".$remote_db_info['table_prefix'].$table." ENGINE=BLACKHOLE;";
 		if ($conn->query($query) == true) {
