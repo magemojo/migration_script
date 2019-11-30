@@ -38,8 +38,9 @@ check_stratus_database_credentials(stratus_database_user, stratus_database_name)
 
 # Collect information from the user.
 remote_ssh_user = raw_input("Remote SSH user: ")
-remote_ssh_host = raw_input("Remote server hostname or IP: ")
+remote_ssh_host = raw_input("Remote SSH host: ")
 remote_ssh_port = raw_input("Remote SSH port: ")
+remote_ssh_password = raw_input("Remote SSH password (just hit enter for SSH keypair): ")
 remote_install_root = raw_input("Remote path: ")
 local_install_root = raw_input("Local path: ")
 new_base_url = raw_input("New base URL: ")
@@ -60,7 +61,7 @@ else:
     sys.exit()
 
 # Print the constructed migration command.
-migcom = 'php ./migration_script/migrate.php --ssh_user={} --ssh_port={} --ssh_url="{}" --ssh_web_root={} --db_user={} --db={} --db_pass={} --web_root={} --base_url={} --magento={} --ssh_passwd=""'.format(remote_ssh_user, remote_ssh_port, remote_ssh_host, remote_install_root, stratus_database_user, stratus_database_name, stratus_database_password, local_install_root, new_base_url, magento_version)
+migcom = 'php ./migration_script/migrate.php --ssh_user={} --ssh_port={} --ssh_url="{}" --ssh_web_root={} --db_user={} --db={} --db_pass={} --web_root={} --base_url={} --magento={} --ssh_passwd={}'.format(remote_ssh_user, remote_ssh_port, remote_ssh_host, remote_install_root, stratus_database_user, stratus_database_name, stratus_database_password, local_install_root, new_base_url, magento_version, remote_ssh_password)
 print
 print migcom
 print
