@@ -37,9 +37,9 @@ stratus_database_password=stratus_database_password.replace('\n','')
 check_stratus_database_credentials(stratus_database_user, stratus_database_name)
 
 # Collect information from the user.
-remote_ssh_user = raw_input("Remote ssh user: ")
+remote_ssh_user = raw_input("Remote SSH user: ")
 remote_ssh_host = raw_input("Remote server hostname or IP: ")
-remote_ssh_port = raw_input("Remote ssh port: ")
+remote_ssh_port = raw_input("Remote SSH port: ")
 remote_install_root = raw_input("Remote path: ")
 local_install_root = raw_input("Local path: ")
 new_base_url = raw_input("New base URL: ")

@@ -50,24 +50,36 @@ _magento_version=m1
 
 # Setting up (buildmig.py)
 1) Clone and set permissions on buildmig.py:
-```git clone https://github.com/jwisecarver-mm/migration_script && chmod +x ./migration_script/buildmig.py &&./migration_script/buildmig.py```
+```
+git clone https://github.com/jwisecarver-mm/migration_script && chmod +x ./migration_script/buildmig.py &&./migration_script/buildmig.py
+```
 
 2) Answer the prompts.
-```Remote SSH user: transfer
+```
+Remote SSH user: transfer
 Remote server hostname or IP: 123.123.123.123
-etc...```
+etc...
+```
 
 3) Run the output the script gives you.
-```php ./migration_script/migrate.php --foo=bar --etc..```
+```
+php ./migration_script/migrate.php --foo=bar --etc..
+```
 
 # Setting up (init.sh)
 1) Clone and set permissions on init.sh:
-```git clone https://github.com/jwisecarver-mm/migration_script && chmod +x ./migration_script/init.sh```
+```
+git clone https://github.com/jwisecarver-mm/migration_script && chmod +x ./migration_script/init.sh
+```
 
 2) Review/edit lines 2 through 8 in init.sh with an editor of your choice:
-```vim ./migration_script/init.sh```
+```
+vim ./migration_script/init.sh
+```
 
 3) Run it.
-```./migration_script/init.sh```
+```
+./migration_script/init.sh
+```
 
 # Report issues or suggestions you have, please.
