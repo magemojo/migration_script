@@ -18,6 +18,7 @@ def check_stratus_database_credentials(stratus_database_user, stratus_database_n
         print
 
 # Get database credentials.
+print
 print "Automatically fetching Stratus DB credentials..."
 stratus_database_credentials = "/usr/share/stratus/cli database.config > mig.log 2>&1"
 os.system(stratus_database_credentials)
@@ -62,3 +63,4 @@ else:
 migcom = 'php ./migration_script/migrate.php --ssh_user={} --ssh_port={} --ssh_url="{}" --ssh_web_root={} --db_user={} --db={} --db_pass={} --web_root={} --base_url={} --magento={} --ssh_passwd=""'.format(remote_ssh_user, remote_ssh_port, remote_ssh_host, remote_install_root, stratus_database_user, stratus_database_name, stratus_database_password, local_install_root, new_base_url, magento_version)
 print
 print migcom
+print
