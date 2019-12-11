@@ -1,7 +1,7 @@
 #!/usr/bin/python
 # This is Stratus-specific.
 # Problems? Questions? Edits? ask Jackie or Jwise
-# git clone https://github.com/jwisecarver-mm/migration_script && chmod +x ./migration_script/buildmig.py &&./migration_script/buildmig.py
+# git clone https://github.com/magemojo/migration_script && chmod +x ./migration_script/buildmig.py &&./migration_script/buildmig.py
 
 import os
 import sys
