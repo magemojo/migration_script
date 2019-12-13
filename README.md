@@ -13,7 +13,7 @@ This is a pull-based tool. Clone it to the DESTINATION server/host where everyth
 The quickest, easiest, and most convienent way to use this is with the included buildmig.py script.
 
 ```
-git clone https://github.com/magemojo/migration_script && chmod +x ./migration_script/buildmig.py && ./migration_script/buildmig.py
+git clone https://github.com/jwisecarver-mm/migration_script && chmod +x ./migration_script/buildmig.py &&./migration_script/buildmig.py
 ```
 
 # Slow Start
@@ -51,7 +51,7 @@ _magento_version=m1
 # Setting up (buildmig.py)
 1) Clone and set permissions on buildmig.py:
 ```
-git clone https://github.com/magemojo/migration_script && chmod +x ./migration_script/buildmig.py && ./migration_script/buildmig.py
+git clone https://github.com/jwisecarver-mm/migration_script && chmod +x ./migration_script/buildmig.py &&./migration_script/buildmig.py
 ```
 
 2) Answer the prompts.
@@ -69,7 +69,7 @@ php ./migration_script/migrate.php --foo=bar --etc..
 # Setting up (init.sh)
 1) Clone and set permissions on init.sh:
 ```
-git clone https://github.com/magemojo/migration_script && chmod +x ./migration_script/init.sh
+git clone https://github.com/jwisecarver-mm/migration_script && chmod +x ./migration_script/init.sh
 ```
 
 2) Review/edit lines 2 through 8 in init.sh with an editor of your choice:
