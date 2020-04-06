@@ -41,9 +41,9 @@ function return_redis_config() {
                 'default' => [
                     'backend' => 'Cm_Cache_Backend_Redis',
                     'backend_options' => [
-                        'server' => 'redis',
+                        'server' => 'redis-config-cache',
                         'database' => '0',
-                        'port' => '6379'
+                        'port' => '6381'
                     ],
                 ],
                 'page_cache' => [
@@ -134,22 +134,22 @@ function update_local_xml_m1($options,$local_xml_path) {
   $xml->global->session_save='';
   $xml->global->session_save->addCData("db");
   $xml->global->session_save_path='';
-  $xml->global->redis_session->host='redis';
-  $xml->global->redis_session->port='6379';
+  $xml->global->redis_session->host='redis-session';
+  $xml->global->redis_session->port='6380';
   $xml->global->redis_session->password='';
   $xml->global->redis_session->timeout='2.5';
   $xml->global->redis_session->persistent='';
-  $xml->global->redis_session->db='1';
+  $xml->global->redis_session->db='0';
   $xml->global->redis_session->compression_threshold='2048';
   $xml->global->redis_session->compression_lib='gzip';
   $xml->global->redis_session->log_level='1';
-  $xml->global->redis_session->max_concurrency='6';
+  $xml->global->redis_session->max_concurrency='20';
   $xml->global->redis_session->break_after_frontend='30';
   $xml->global->redis_session->fail_after='10';
   $xml->global->redis_session->break_after_adminhtml='30';
   $xml->global->redis_session->first_lifetime='600';
   $xml->global->redis_session->bot_first_lifetime='60';
-  $xml->global->redis_session->disable_locking='0';
+  $xml->global->redis_session->disable_locking='1';
   $xml->global->redis_session->min_lifetime='60';
   $xml->global->redis_session->max_lifetime='2592000';
 
@@ -207,22 +207,22 @@ function set_redis_session_m2($env_data){
      print_r("Setting redis ...\n");
      $env_data['session']['save'] = 'redis';
      $env_data['session']['redis'] = array (
-    'host' => 'redis',
-    'port' => '6379',
+    'host' => 'redis-session',
+    'port' => '6380',
     'password' => '',
     'timeout' => '2.5',
     'persistent_identifier' => '',
-    'database' => '2',
+    'database' => '0',
     'compression_threshold' => '2048',
     'compression_library' => 'gzip',
     'log_level' => '1',
-    'max_concurrency' => '6',
+    'max_concurrency' => '20',
     'break_after_frontend' => '5',
     'break_after_adminhtml' => '30',
     'first_lifetime' => '600',
     'bot_first_lifetime' => '60',
     'bot_lifetime' => '7200',
-    'disable_locking' => '0',
+    'disable_locking' => '1',
     'min_lifetime' => '60',
     'max_lifetime' => '2592000'
   );
