@@ -281,7 +281,7 @@ function dump_remote_db($options,$remote_db_info) {
   //db_info assumed to be array extracted from remote host
   //ssh $PROD_SSH_USER@$PROD_SSH_HOST "mysqldump --quick -u$PROD_USER -p$PROD_PASS $PROD_DATABASE" > prod_dump.sql
   //form $command
-  $command="ssh -p " . $options['ssh_port'] . ' ' . $options['ssh_user'] . '@' . $options['ssh_url'] . ' "mysqldump --extended-insert=FALSE --verbose -h ' . $remote_db_info['db_host'] .  ' --quick -u' . $remote_db_info['db_user'] . ' -p\'' . str_replace("$", "\\$", $remote_db_info['db_pass']) . '\' ' . $remote_db_info['db'] . '" > /srv/prod_dump.sql';
+  $command="ssh -p " . $options['ssh_port'] . ' ' . $options['ssh_user'] . '@' . $options['ssh_url'] . ' "mysqldump --skip-lock-tables --extended-insert=FALSE --verbose -h ' . $remote_db_info['db_host'] .  ' --quick -u' . $remote_db_info['db_user'] . ' -p\'' . str_replace("$", "\\$", $remote_db_info['db_pass']) . '\' ' . $remote_db_info['db'] . '" > /srv/prod_dump.sql';
   print_r("Copying with \n" . $command . " use this password: ");
   print_r($options['ssh_pass']);
   run_command($command);
